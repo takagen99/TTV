@@ -1,0 +1,14 @@
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="@color/transparent">
+    <item>
+        <selector>
+            <item
+                android:drawable="@color/transparent"
+                android:state_focused="true"></item>
+            <item
+                android:drawable="@color/transparent"
+                android:state_activated="true"></item>
+            <item android:drawable="@color/transparent"></item>
+        </selector>
+    </item>
+</ripple>
