@@ -11,51 +11,51 @@ import java.util.List;
 
 public class AppInfo {
 
-	private Drawable icon;
-	private Drawable banner;
-	private String name;
-	private String pack;
+    private final Drawable icon;
+    private final Drawable banner;
+    private final String name;
+    private final String pack;
 
-	public static AppInfo get(ApplicationInfo info) {
-		Drawable icon = info.loadIcon(App.get().getPackageManager());
-		Drawable banner = info.loadBanner(App.get().getPackageManager());
-		String name = info.loadLabel(App.get().getPackageManager()).toString();
-		String pack = info.packageName;
-		return new AppInfo(name, pack, icon, banner);
-	}
+    public AppInfo(String name, String pack, Drawable icon, Drawable banner) {
+        this.name = name;
+        this.pack = pack;
+        this.icon = icon;
+        this.banner = banner;
+    }
 
-	public AppInfo(String name, String pack, Drawable icon, Drawable banner) {
-		this.name = name;
-		this.pack = pack;
-		this.icon = icon;
-		this.banner = banner;
-	}
+    public static AppInfo get(ApplicationInfo info) {
+        Drawable icon = info.loadIcon(App.get().getPackageManager());
+        Drawable banner = info.loadBanner(App.get().getPackageManager());
+        String name = info.loadLabel(App.get().getPackageManager()).toString();
+        String pack = info.packageName;
+        return new AppInfo(name, pack, icon, banner);
+    }
 
-	public String getName() {
-		return name;
-	}
+    public String getName() {
+        return name;
+    }
 
-	public String getPack() {
-		return pack;
-	}
+    public String getPack() {
+        return pack;
+    }
 
-	public Drawable getIcon() {
-		return icon;
-	}
+    public Drawable getIcon() {
+        return icon;
+    }
 
-	public Drawable getBanner() {
-		return banner;
-	}
+    public Drawable getBanner() {
+        return banner;
+    }
 
-	public static class Sorter implements Comparator<AppInfo> {
+    public static class Sorter implements Comparator<AppInfo> {
 
-		public static void sort(List<AppInfo> items) {
-			Collections.sort(items, new Sorter());
-		}
+        public static void sort(List<AppInfo> items) {
+            Collections.sort(items, new Sorter());
+        }
 
-		@Override
-		public int compare(AppInfo info1, AppInfo info12) {
-			return info1.getName().compareToIgnoreCase(info12.getName());
-		}
-	}
+        @Override
+        public int compare(AppInfo info1, AppInfo info2) {
+            return info1.getName().compareToIgnoreCase(info2.getName());
+        }
+    }
 }

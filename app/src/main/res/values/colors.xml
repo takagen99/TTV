@@ -3,10 +3,9 @@
 
     <color name="primary">@color/black</color>
     <color name="primaryDark">@color/black</color>
-    <color name="accent">@color/blue_500</color>
+<!--    <color name="accent">@color/blue_500</color>-->
     <color name="background">#424242</color>
 
-    <color name="black">#000000</color>
     <color name="white">#FFFFFF</color>
     <color name="blue_500">#2196F3</color>
     <color name="grey_700">#616161</color>
@@ -14,7 +13,28 @@
     <color name="green_400">#66BB6A</color>
     <color name="transparent">#00000000</color>
 
-
+    <color name="black">#000000</color>
+    <color name="black_05">#0D000000</color>
+    <color name="black_10">#1A000000</color>
+    <color name="black_15">#26000000</color>
+    <color name="black_20">#33000000</color>
+    <color name="black_30">#4D000000</color>
     <color name="black_40">#66000000</color>
+    <color name="black_50">#80000000</color>
+    <color name="black_60">#99000000</color>
+    <color name="black_70">#B3000000</color>
+    <color name="black_80">#CC000000</color>
+    <color name="black_90">#E6000000</color>
+
+    <color name="accent">#D81F26</color>
+    <color name="accent_10">#1AD81F26</color>
+    <color name="accent_20">#33D81F26</color>
+    <color name="accent_30">#4DD81F26</color>
+    <color name="accent_40">#66D81F26</color>
+    <color name="accent_50">#80D81F26</color>
+    <color name="accent_60">#99D81F26</color>
+    <color name="accent_70">#B3D81F26</color>
+    <color name="accent_80">#CCD81F26</color>
+    <color name="accent_90">#E6D81F26</color>
 
 </resources>

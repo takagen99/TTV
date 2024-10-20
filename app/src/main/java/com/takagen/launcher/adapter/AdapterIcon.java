@@ -20,91 +20,99 @@ import java.util.concurrent.Executors;
 
 public class AdapterIcon extends RecyclerView.Adapter<AdapterIcon.Holder> {
 
-	private OnItemClickListener mItemClickListener;
-	private final ExecutorService executor;
-	private final List<AppInfo> mItems;
-	private final Handler handler;
+    private final ExecutorService executor;
+    private final List<AppInfo> mItems;
+    private final Handler handler;
+    private OnItemClickListener mItemClickListener;
 
-	public AdapterIcon() {
-		this.mItems = new ArrayList<>();
-		this.executor = Executors.newSingleThreadExecutor();
-		this.handler = new Handler(Looper.getMainLooper());
-	}
+    public AdapterIcon() {
+        this.mItems = new ArrayList<>();
+        this.executor = Executors.newSingleThreadExecutor();
+        this.handler = new Handler(Looper.getMainLooper());
+    }
 
-	public interface OnItemClickListener {
+    public void setOnItemClickListener(OnItemClickListener itemClickListener) {
+        this.mItemClickListener = itemClickListener;
+    }
 
-		void onItemClick(AppInfo item);
-	}
+    public void getApp(int type) {
+        executor.execute(() -> {
+            addAll(Utils.getApps(type));
+            handler.post(this::notifyDataSetChanged);
+        });
+    }
 
-	public void setOnItemClickListener(OnItemClickListener itemClickListener) {
-		this.mItemClickListener = itemClickListener;
-	}
+    private void addAll(List<AppInfo> items) {
+        mItems.clear();
+        mItems.addAll(items);
+        AppInfo.Sorter.sort(mItems);
+    }
 
-	class Holder extends RecyclerView.ViewHolder implements View.OnClickListener {
+    @Override
+    public int getItemCount() {
+        return mItems.size();
+    }
 
-		private final AdapterIconBinding iconBinding;
+    @NonNull
+    @Override
+    public Holder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        return new Holder(AdapterIconBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false));
+    }
 
-		public Holder(AdapterIconBinding binding) {
-			super(binding.getRoot());
-			this.iconBinding = binding;
-			binding.getRoot().setOnClickListener(this);
-		}
+    @Override
+    public void onBindViewHolder(@NonNull Holder holder, int position) {
+        AppInfo item = mItems.get(position);
+        setFocusListener(holder.iconBinding);
 
-		@Override
-		public void onClick(View view) {
-			mItemClickListener.onItemClick(mItems.get(getLayoutPosition()));
-		}
-	}
-
-	public void getApp(int type) {
-		executor.execute(() -> {
-			addAll(Utils.getApps(type));
-			handler.post(this::notifyDataSetChanged);
-		});
-	}
-
-	private void addAll(List<AppInfo> items) {
-		mItems.clear();
-		mItems.addAll(items);
-		AppInfo.Sorter.sort(mItems);
-	}
-
-	@Override
-	public int getItemCount() {
-		return mItems.size();
-	}
-
-	@NonNull
-	@Override
-	public Holder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-		return new Holder(AdapterIconBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false));
-	}
-
-	@Override
-	public void onBindViewHolder(@NonNull Holder holder, int position) {
-		AppInfo item = mItems.get(position);
-		setFocusListener(holder.iconBinding);
-
-		holder.iconBinding.name.setText(item.getName());
+        holder.iconBinding.name.setText(item.getName());
 
 //		if (item.getBanner()==null) {
-			holder.iconBinding.icon.setImageDrawable(item.getIcon());
+        holder.iconBinding.icon.setImageDrawable(item.getIcon());
 //		} else {
 //			holder.iconBinding.icon.setImageDrawable(item.getBanner());
 //		}
 
-	}
+    }
 
-	private void setFocusListener(AdapterIconBinding binding) {
-		binding.getRoot().setOnFocusChangeListener((v, hasFocus) -> {
-			if (v.hasFocus()) {
-				v.animate().scaleX(1.25f).scaleY(1.25f).setDuration(100).start();
-				v.setSelected(true);
-			} else {
-				v.animate().scaleX(1.0f).scaleY(1.0f).setDuration(100).start();
-				v.setSelected(false);
-			}
-		});
+    private void setFocusListener(AdapterIconBinding binding) {
+        binding.getRoot().setOnFocusChangeListener((v, hasFocus) -> {
+            if (v.hasFocus()) {
+                v.setAlpha(1f);
+                v.setElevation(10);
+                v.animate().scaleX(1.25f).scaleY(1.25f)
+                        .setDuration(100)
+                        .start();
+                v.setSelected(true);
+            } else {
+                v.animate().scaleX(1.0f).scaleY(1.0f)
+                        .setDuration(100)
+                        .start();
+                v.setSelected(false);
+                v.setElevation(0);
+                v.setAlpha(0.9f);
+            }
+        });
 
-	}
+    }
+
+    public interface OnItemClickListener {
+
+        void onItemClick(AppInfo item);
+    }
+
+    class Holder extends RecyclerView.ViewHolder implements View.OnClickListener {
+
+        private final AdapterIconBinding iconBinding;
+
+        public Holder(AdapterIconBinding binding) {
+            super(binding.getRoot());
+            this.iconBinding = binding;
+            binding.getRoot().setOnClickListener(this);
+        }
+
+        @Override
+        public void onClick(View view) {
+            mItemClickListener.onItemClick(mItems.get(getLayoutPosition()));
+        }
+    }
 }

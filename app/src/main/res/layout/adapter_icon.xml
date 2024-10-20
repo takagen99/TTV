@@ -6,7 +6,7 @@
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:alpha="0.9"
-    android:background="?android:attr/selectableItemBackground"
+    android:background="@drawable/selector_banner"
     android:focusable="true"
     android:focusableInTouchMode="true"
     android:gravity="center"
