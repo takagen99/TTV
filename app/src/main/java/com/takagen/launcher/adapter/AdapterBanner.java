@@ -9,7 +9,7 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.takagen.launcher.Utils;
+import com.takagen.launcher.utils.Utils;
 import com.takagen.launcher.bean.AppInfo;
 import com.takagen.launcher.databinding.AdapterBannerBinding;
 
@@ -20,19 +20,16 @@ import java.util.concurrent.Executors;
 
 public class AdapterBanner extends RecyclerView.Adapter<AdapterBanner.Holder> {
 
+    private final OnClickListener mListener;
     private final ExecutorService executor;
     private final List<AppInfo> mItems;
     private final Handler handler;
-    private OnItemClickListener mItemClickListener;
 
-    public AdapterBanner() {
+    public AdapterBanner(OnClickListener listener) {
         this.mItems = new ArrayList<>();
         this.executor = Executors.newSingleThreadExecutor();
         this.handler = new Handler(Looper.getMainLooper());
-    }
-
-    public void setOnItemClickListener(OnItemClickListener itemClickListener) {
-        this.mItemClickListener = itemClickListener;
+        this.mListener = listener;
     }
 
     public void getApp(int type) {
@@ -46,6 +43,7 @@ public class AdapterBanner extends RecyclerView.Adapter<AdapterBanner.Holder> {
         mItems.clear();
         mItems.addAll(items);
         AppInfo.Sorter.sort(mItems);
+        mItems.addAll(0, Utils.getAppsPriority());
     }
 
     @Override
@@ -63,6 +61,7 @@ public class AdapterBanner extends RecyclerView.Adapter<AdapterBanner.Holder> {
     public void onBindViewHolder(@NonNull Holder holder, int position) {
         AppInfo item = mItems.get(position);
         setFocusListener(holder.bannerBinding);
+        setClickListener(holder.itemView, item);
 
         holder.bannerBinding.name.setText(item.getName());
         holder.bannerBinding.icon.setImageDrawable(item.getBanner());
@@ -84,29 +83,31 @@ public class AdapterBanner extends RecyclerView.Adapter<AdapterBanner.Holder> {
                         .start();
                 v.setSelected(false);
                 v.setElevation(0);
-                v.setAlpha(0.9f);
+                v.setAlpha(0.6f);
             }
         });
     }
 
-    public interface OnItemClickListener {
-
-        void onItemClick(AppInfo item);
+    private void setClickListener(View root, AppInfo item) {
+        root.setOnClickListener(view -> mListener.onItemClick(item));
+        root.setOnLongClickListener(view -> mListener.onLongClick(item));
     }
 
-    class Holder extends RecyclerView.ViewHolder implements View.OnClickListener {
+    public interface OnClickListener {
+        void onItemClick(AppInfo item);
+
+        boolean onLongClick(AppInfo item);
+    }
+
+    class Holder extends RecyclerView.ViewHolder {
 
         private final AdapterBannerBinding bannerBinding;
 
         public Holder(AdapterBannerBinding binding) {
             super(binding.getRoot());
             this.bannerBinding = binding;
-            binding.getRoot().setOnClickListener(this);
         }
 
-        @Override
-        public void onClick(View view) {
-            mItemClickListener.onItemClick(mItems.get(getLayoutPosition()));
-        }
     }
+
 }

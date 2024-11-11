@@ -9,7 +9,7 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.takagen.launcher.Utils;
+import com.takagen.launcher.utils.Utils;
 import com.takagen.launcher.bean.AppInfo;
 import com.takagen.launcher.databinding.AdapterIconBinding;
 
@@ -89,7 +89,7 @@ public class AdapterIcon extends RecyclerView.Adapter<AdapterIcon.Holder> {
                         .start();
                 v.setSelected(false);
                 v.setElevation(0);
-                v.setAlpha(0.9f);
+                v.setAlpha(0.6f);
             }
         });
 
@@ -115,4 +115,5 @@ public class AdapterIcon extends RecyclerView.Adapter<AdapterIcon.Holder> {
             mItemClickListener.onItemClick(mItems.get(getLayoutPosition()));
         }
     }
+
 }

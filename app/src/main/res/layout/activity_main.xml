@@ -6,10 +6,15 @@
     android:layout_height="match_parent"
     android:background="@drawable/bg">
 
+    <View
+        android:id="@+id/mainBG"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@drawable/shap_home_bg"
+        android:background="@drawable/shape_home_bg"
         android:focusable="true"
         android:focusableInTouchMode="true"
         android:orientation="vertical"
@@ -31,6 +36,51 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1" />
+
+            <Button
+                android:id="@+id/testGet"
+                android:layout_width="100dp"
+                android:layout_height="50dp"
+                android:text="get"
+                android:visibility="gone"></Button>
+
+            <TextView
+                android:id="@+id/tvPosterTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="16dp"
+                android:focusable="false"
+                android:focusableInTouchMode="false"
+                android:fontFamily="@font/roboto_thin"
+                android:textColor="@android:color/white"
+                android:textSize="12sp"
+                tools:text="poster title" />
+
+            <ImageView
+                android:id="@+id/tvRefresh"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_marginStart="8dp"
+                android:background="@drawable/selector_home"
+                android:clickable="true"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:padding="7dp"
+                android:src="@drawable/ic_home_refresh"
+                android:tag="hmTop" />
+
+            <ImageView
+                android:id="@+id/tvClear"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_marginStart="8dp"
+                android:background="@drawable/selector_home"
+                android:clickable="true"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:padding="5dp"
+                android:src="@drawable/ic_home_clear"
+                android:tag="hmTop" />
 
             <ImageView
                 android:id="@+id/tvWifi"
@@ -60,11 +110,18 @@
                 android:src="@drawable/ic_home_setting"
                 android:tag="hmTop" />
 
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:orientation="horizontal">
+
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="5dp"
-                android:layout_marginEnd="15dp"
+                android:layout_margin="24dp"
                 android:orientation="horizontal">
 
                 <TextView
@@ -77,14 +134,15 @@
                     android:gravity="center"
                     android:textAlignment="gravity"
                     android:textColor="@android:color/white"
-                    android:textSize="36sp"
+                    android:textSize="72sp"
+                    android:textStyle="bold"
                     tools:text="22:00" />
 
                 <TextView
                     android:id="@+id/tvDate"
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
-                    android:layout_marginStart="8dp"
+                    android:layout_marginStart="16dp"
                     android:focusable="false"
                     android:focusableInTouchMode="false"
                     android:fontFamily="@font/roboto_thin"
@@ -92,7 +150,7 @@
                     android:lineSpacingMultiplier="0.9"
                     android:textAlignment="gravity"
                     android:textColor="@android:color/white"
-                    android:textSize="15sp"
+                    android:textSize="24sp"
                     tools:text="20 April\nWednesday" />
 
             </LinearLayout>
@@ -115,7 +173,6 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="24dp"
-                    android:layout_marginTop="120dp"
                     android:focusable="false"
                     android:focusableInTouchMode="false"
                     android:fontFamily="@font/roboto_thin"
@@ -127,11 +184,9 @@
                 <com.takagen.launcher.ui.custom.CustomHorizontalGridView
                     android:id="@+id/recycler_banner"
                     android:layout_width="match_parent"
-                    android:layout_height="150dp"
+                    android:layout_height="155dp"
                     android:clipChildren="false"
                     android:clipToPadding="false"
-                    android:focusable="true"
-                    android:focusableInTouchMode="true"
                     android:padding="24dp"
                     app:focusOutEnd="true"
                     app:focusOutFront="true" />
@@ -140,7 +195,6 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="24dp"
-                    android:layout_marginTop="8dp"
                     android:focusable="false"
                     android:focusableInTouchMode="false"
                     android:fontFamily="@font/roboto_thin"
@@ -152,7 +206,7 @@
                 <com.takagen.launcher.ui.custom.CustomHorizontalGridView
                     android:id="@+id/recycler_icon"
                     android:layout_width="match_parent"
-                    android:layout_height="180dp"
+                    android:layout_height="170dp"
                     android:clipChildren="false"
                     android:clipToPadding="false"
                     android:padding="24dp"

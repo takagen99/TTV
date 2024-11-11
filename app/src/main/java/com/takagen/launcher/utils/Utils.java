@@ -1,4 +1,4 @@
-package com.takagen.launcher;
+package com.takagen.launcher.utils;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -12,9 +12,13 @@ import androidx.annotation.AnimRes;
 import androidx.annotation.DrawableRes;
 import androidx.core.content.ContextCompat;
 
+import com.takagen.launcher.App;
 import com.takagen.launcher.bean.AppInfo;
+import com.takagen.launcher.bean.FavApp;
+import com.takagen.launcher.db.FavAppDB;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class Utils {
@@ -24,13 +28,34 @@ public class Utils {
         activity.getWindow().getDecorView().setSystemUiVisibility(flags);
     }
 
+    public static Animation getAnim(@AnimRes int resId) {
+        return AnimationUtils.loadAnimation(App.get(), resId);
+    }
+
+    public static Drawable getDrawable(@DrawableRes int resId) {
+        return ContextCompat.getDrawable(App.get(), resId);
+    }
+
     @SuppressLint("QueryPermissionsNeeded")
     public static List<AppInfo> getApps(int type) {
+        // Favorite Pinned Apps
+        FavAppDB db = FavAppDB.get();
+        List<FavApp> FavList = db.favAppDao().getAllFavApp();
+
         List<AppInfo> items = new ArrayList<>();
         for (ApplicationInfo info : App.get().getPackageManager().getInstalledApplications(0)) {
             if (info.packageName.equals(App.get().getPackageName())) continue;
+
+            String tempPack = null;
+            for (FavApp f : FavList) {
+                if (info.packageName.contains(f.pack)) {
+                    tempPack = f.pack;
+                }
+            }
+            if (info.packageName.equals(tempPack)) continue;
 //			if ((info.flags & ApplicationInfo.FLAG_SYSTEM) != 0) continue;
 
+            // ignored Launch Intent Apps
             if (App.get().getPackageManager().getLaunchIntentForPackage(info.packageName) == null)
                 continue;
 
@@ -47,12 +72,22 @@ public class Utils {
         return items;
     }
 
-    public static Animation getAnim(@AnimRes int resId) {
-        return AnimationUtils.loadAnimation(App.get(), resId);
-    }
+    @SuppressLint("QueryPermissionsNeeded")
+    public static List<AppInfo> getAppsPriority() {
+        FavAppDB db = FavAppDB.get();
+        List<FavApp> FavList = db.favAppDao().getAllFavApp();
+        Collections.reverse(FavList);
 
-    public static Drawable getDrawable(@DrawableRes int resId) {
-        return ContextCompat.getDrawable(App.get(), resId);
+        List<AppInfo> items = new ArrayList<>();
+        for (FavApp f : FavList) {
+            try {
+                ApplicationInfo info = App.get().getPackageManager().getApplicationInfo(f.pack, 0);
+                items.add(AppInfo.get(info));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return items;
     }
 
 }

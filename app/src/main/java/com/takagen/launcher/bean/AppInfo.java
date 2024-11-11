@@ -57,5 +57,7 @@ public class AppInfo {
         public int compare(AppInfo info1, AppInfo info2) {
             return info1.getName().compareToIgnoreCase(info2.getName());
         }
+
     }
+
 }

@@ -36,4 +36,5 @@ public class Notify {
     private static class Loader {
         static volatile Notify INSTANCE = new Notify();
     }
+
 }

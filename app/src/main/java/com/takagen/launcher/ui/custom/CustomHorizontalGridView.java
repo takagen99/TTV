@@ -14,7 +14,7 @@ import androidx.annotation.Nullable;
 import androidx.leanback.widget.HorizontalGridView;
 
 import com.takagen.launcher.R;
-import com.takagen.launcher.Utils;
+import com.takagen.launcher.utils.Utils;
 
 public class CustomHorizontalGridView extends HorizontalGridView {
 
