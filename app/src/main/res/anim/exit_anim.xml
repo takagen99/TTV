@@ -4,16 +4,16 @@
             android:interpolator="@android:anim/linear_interpolator"
             android:duration="800"
             android:fromXScale="1.0"
-            android:toXScale="0.9"
+            android:toXScale="0.95"
             android:fromYScale="1.0"
-            android:toYScale="0.9"
+            android:toYScale="0.95"
             android:pivotX="50%"
             android:pivotY="50%"
     >
     </scale>
     <alpha
             android:interpolator="@android:anim/linear_interpolator"
-            android:duration="800"
+            android:duration="1000"
             android:fromAlpha="1.0"
             android:toAlpha="0.0"/>
 </set>

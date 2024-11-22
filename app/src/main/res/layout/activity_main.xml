@@ -2,6 +2,7 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/frameBG"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/bg">
@@ -44,6 +45,13 @@
                 android:text="get"
                 android:visibility="gone"></Button>
 
+            <Button
+                android:id="@+id/testHDMI"
+                android:layout_width="100dp"
+                android:layout_height="50dp"
+                android:text="HDMI"
+                android:visibility="gone"></Button>
+
             <TextView
                 android:id="@+id/tvPosterTitle"
                 android:layout_width="wrap_content"
@@ -67,6 +75,19 @@
                 android:focusableInTouchMode="true"
                 android:padding="7dp"
                 android:src="@drawable/ic_home_refresh"
+                android:tag="hmTop" />
+
+            <ImageView
+                android:id="@+id/tvInput"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_marginStart="8dp"
+                android:background="@drawable/selector_home"
+                android:clickable="true"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:padding="12dp"
+                android:src="@drawable/ic_home_input"
                 android:tag="hmTop" />
 
             <ImageView

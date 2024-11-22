@@ -1,0 +1,20 @@
+<set xmlns:android="http://schemas.android.com/apk/res/android"
+    android:interpolator="@android:anim/accelerate_decelerate_interpolator">
+    <!--scale view fromX fromY are the starting point  (.5 is 50% of scale, )-->
+    <!--scale view toX and toY are the final state (1 is 100%)-->
+    <!--pivot is the center of animation, so in your case the zoomin on the video is from the exact center (50% pivot x, 50% pivot Y)-->
+    <scale
+        android:duration="@android:integer/config_longAnimTime"
+        android:fromXScale="1"
+        android:fromYScale=".5"
+        android:pivotX="50%p"
+        android:pivotY="50%p"
+        android:toXScale="1"
+        android:toYScale="1" />
+
+    <!-- alpha animation is made at the same time of scale animation, and for me make a better and smooth result, alpha 0 is full trasparent, 1 is the normal state. The final alpha state of the activity after this animation is 1, so pay attention toAlpha must be 1 if you don't want glitch-->
+    <alpha
+        android:duration="@android:integer/config_longAnimTime"
+        android:fromAlpha="0"
+        android:toAlpha="1" />
+</set>

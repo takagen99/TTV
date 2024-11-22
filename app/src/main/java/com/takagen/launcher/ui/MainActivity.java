@@ -1,10 +1,14 @@
 package com.takagen.launcher.ui;
 
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.res.Configuration;
 import android.graphics.drawable.Drawable;
+import android.media.tv.TvContract;
+import android.media.tv.TvInputInfo;
+import android.media.tv.TvInputManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
@@ -29,16 +33,17 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.takagen.launcher.App;
 import com.takagen.launcher.R;
-import com.takagen.launcher.utils.Utils;
 import com.takagen.launcher.adapter.AdapterBanner;
 import com.takagen.launcher.adapter.AdapterIcon;
 import com.takagen.launcher.bean.AppInfo;
 import com.takagen.launcher.bean.FavApp;
 import com.takagen.launcher.databinding.ActivityMainBinding;
 import com.takagen.launcher.db.FavAppDB;
+import com.takagen.launcher.ui.dialog.InputDialog;
 import com.takagen.launcher.utils.Clock;
 import com.takagen.launcher.utils.Notify;
 import com.takagen.launcher.utils.ResUtil;
+import com.takagen.launcher.utils.Utils;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -63,6 +68,14 @@ public class MainActivity extends AppCompatActivity implements AdapterBanner.OnC
     private Animation aEnter;
     private Animation aExit;
 
+    private Uri mUri;
+    String id_0 = "com.google.android.videos/.tv.usecase.tvinput.playback.TvInputService"; // Tuner
+    String id_1 = "com.mediatek.tvinput/.hdmi.HDMIInputService/HW4";     // HDMI 1
+    String id_2 = "com.mediatek.tvinput/.hdmi.HDMIInputService/HW5";     // HDMI 2
+    String id_3 = "com.mediatek.tvinput/.hdmi.HDMIInputService/HW6";     // HDMI 3
+    String id_av = "com.mediatek.tvinput/.composite.CompositeInputService/HW1";     // AV Composite
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -86,6 +99,7 @@ public class MainActivity extends AppCompatActivity implements AdapterBanner.OnC
         mClockDate = Clock.create(binding.tvDate).format("dd MMMM\nEEEE");
 
         binding.tvRefresh.setOnClickListener(this::onMenuClick);
+        binding.tvInput.setOnClickListener(this::onMenuClick);
         binding.tvClear.setOnClickListener(this::onMenuClick);
         binding.tvWifi.setOnClickListener(this::onMenuClick);
         binding.tvMenu.setOnClickListener(this::onMenuClick);
@@ -95,26 +109,53 @@ public class MainActivity extends AppCompatActivity implements AdapterBanner.OnC
         setWall();
 
         // For Testing only - Show Pinned
-        binding.testGet.setOnClickListener(new View.OnClickListener() {
+        binding.testGet.setOnClickListener(this::getFavApp);
+//        binding.testGet.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                getFavApp();
+//            }
+//        });
+        // For Testing only - Trigger HDMI
+        binding.testHDMI.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                getFavApp();
+                callHDMI();
             }
         });
     }
 
-    private void getFavApp() {
+    private void callHDMI() {
+        mUri = TvContract.buildChannelUriForPassthroughInput(id_2);
+        startActivity(new Intent(Intent.ACTION_VIEW, mUri), null);
+    }
+
+    private void getFavApp(View v) {
         FavAppDB db = FavAppDB.get();
         List<FavApp> FavList = db.favAppDao().getAllFavApp();
         Collections.reverse(FavList);
 
+//        StringBuilder sb = new StringBuilder();
+//        for (FavApp f : FavList) {
+//            sb.append(f.id + " " + f.name + " " + f.pack);
+//            sb.append("\n");
+//        }
+//        String finalData = sb.toString();
+//        Notify.show(finalData);
+
+        TvInputManager mTvInputManager = null;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+            mTvInputManager = (TvInputManager) getSystemService(Context.TV_INPUT_SERVICE);
+        }
+        List<TvInputInfo> inputs = mTvInputManager.getTvInputList();
         StringBuilder sb = new StringBuilder();
-        for (FavApp f : FavList) {
-            sb.append(f.id + " " + f.name + " " + f.pack);
+        for (TvInputInfo f : inputs) {
+            sb.append(f.getId() + " " + f.getType() + " " + f.isPassthroughInput());
             sb.append("\n");
         }
         String finalData = sb.toString();
         Notify.show(finalData);
+
     }
 
     private void initEvent() {
@@ -174,6 +215,8 @@ public class MainActivity extends AppCompatActivity implements AdapterBanner.OnC
     private void onMenuClick(View v) {
         if (v == binding.tvRefresh) {
             setWallFinish();
+        } else if (v == binding.tvInput) {
+            selectInputDialog();
         } else if (v == binding.tvClear) {
             MaterialAlertDialogBuilder dialogBuilder = new MaterialAlertDialogBuilder(this, R.style.DarkDialogAlert)
                     .setTitle("Reset Pinned Apps")
@@ -227,14 +270,8 @@ public class MainActivity extends AppCompatActivity implements AdapterBanner.OnC
     @Override
     public void onItemClick(AppInfo item) {
         try {
-//            int left = 0, top = 0;
-//            int width = binding.mainBG.getMeasuredWidth(), height = binding.mainBG.getMeasuredHeight();
-//            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-//                ActivityOptions opts = ActivityOptions.makeClipRevealAnimation(binding.mainBG, left, top, width, height);
-//                startActivity(getPackageManager().getLaunchIntentForPackage(item.getPack()),opts.toBundle());
-//            } else {
             startActivity(getPackageManager().getLaunchIntentForPackage(item.getPack()));
-//            }
+            overridePendingTransition(R.anim.zoom_enter, 0);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -267,50 +304,12 @@ public class MainActivity extends AppCompatActivity implements AdapterBanner.OnC
 
     public void setWall() {
 
-        String apiKey = "f3d2f6963f370a24758969434c14cef0";
-
-        String specific = "https://api.themoviedb.org/3/tv/" + "95479" + "/images" + "?api_key=" + apiKey + "&include_image_language=en%2Cnull";
-        String trending = "https://api.themoviedb.org/3/trending/tv/week?api_key=" + apiKey + "&language=en-US";
-
         new Thread(new Runnable() {
             @Override
             public void run() {
-                try {
-                    URL url = new URL(trending);
-                    URLConnection request = url.openConnection();
-                    request.connect();
-
-                    JsonParser jp = new JsonParser(); //from gson
-                    JsonElement root = jp.parse(new InputStreamReader((InputStream) request.getContent())); //Convert the input stream to a json element
-                    JsonObject rootobj = root.getAsJsonObject();
-
-                    // For TV Show specific with ID -----------------------
-//                    JsonArray items = rootobj.get("backdrops").getAsJsonArray();
-//                    for (int i = 0; i < items.size(); i++) {
-//                        JsonObject item = items.get(i).getAsJsonObject();
-//                        if (i == 3) {
-//                            filePath[0] = item.get("file_path").getAsString();
-//                        }
-//                    }
-
-                    // For Trending TV Shows of the day  -----------------
-                    JsonArray items = rootobj.get("results").getAsJsonArray();
-                    for (int i = 0; i < items.size(); i++) {
-//                        JsonObject item = items.get(i).getAsJsonObject();
-//                        backdropPath.add(item.get("backdrop_path").getAsString());
-//                        System.out.println("backdrop_path: " + item.get("backdrop_path").getAsString() + "\n");
-
-                        JsonObject item = items.get(i).getAsJsonObject();
-                        List<String> row = new ArrayList<>();
-                        row.add(item.get("backdrop_path").getAsString());       // Column 1 : Backdrop path
-                        row.add(item.get("name").getAsString());                // Column 2 : Name
-                        backdropPathL.add(row);
-                        System.out.println("backdrop_pathL: " + item.get("backdrop_path").getAsString() + " - " + item.get("name").getAsString() + "\n");
-                    }
-
-                } catch (IOException e) {
-                    Notify.show("Error JSON");
-                }
+                openURL(1);
+                openURL(2);
+                openURL(3);
 
                 runOnUiThread(new Runnable() {
                     public void run() {
@@ -323,13 +322,65 @@ public class MainActivity extends AppCompatActivity implements AdapterBanner.OnC
 
     }
 
+    public void openURL(Integer page) {
+        String apiKey = "5622cafbfe8f8cfe358a29c53e19bba0";  //  f3d2f6963f370a24758969434c14cef0
+
+        String specific = "https://api.themoviedb.org/3/tv/" + "95479" + "/images" + "?api_key=" + apiKey + "&include_image_language=en%2Cnull";
+        String trending = "https://api.themoviedb.org/3/trending/all/week?api_key=" + apiKey + "&language=en-US&page=" + page;
+
+        try {
+            URL url = new URL(trending);
+            URLConnection request = url.openConnection();
+            request.connect();
+
+            JsonParser jp = new JsonParser(); //from gson
+            JsonElement root = jp.parse(new InputStreamReader((InputStream) request.getContent())); //Convert the input stream to a json element
+            JsonObject rootobj = root.getAsJsonObject();
+
+            // For TV Show specific with ID -----------------------
+//                    JsonArray items = rootobj.get("backdrops").getAsJsonArray();
+//                    for (int i = 0; i < items.size(); i++) {
+//                        JsonObject item = items.get(i).getAsJsonObject();
+//                        if (i == 3) {
+//                            filePath[0] = item.get("file_path").getAsString();
+//                        }
+//                    }
+
+            // For Trending Movie & TV Shows of the week  --------------
+            JsonArray items = rootobj.get("results").getAsJsonArray();
+            for (int i = 0; i < items.size(); i++) {
+                String t_path, t_name = "";
+
+                JsonObject item = items.get(i).getAsJsonObject();
+                List<String> row = new ArrayList<>();
+
+                t_path = item.get("backdrop_path").getAsString();
+                row.add(t_path);                                       // Column 1 : Backdrop path
+                if (item.has("name")) {
+                    t_name = item.get("name").getAsString();
+                    row.add(t_name);                                   // Column 2 : Name, or
+                } else if (item.has("title")) {
+                    t_name = item.get("title").getAsString();
+                    row.add(t_name);                                   // Column 2 : Title
+                }
+
+                backdropPathL.add(row);
+                System.out.println("backdrop_pathL: " + t_path + " - " + t_name + "\n");
+            }
+        } catch (IOException e) {
+            System.out.println("TMDB open Error");
+        }
+    }
+
     public void setWallFinish() {
 
-        // Get random number between 0 - 19
-        int n = 20;
+        if (backdropPathL.isEmpty()) return;
+
+        // Get random number between 0 - 39
+        int n = 60;
         int rand = (int) (Math.random() * n);
 
-        String baseUrl = "https://image.tmdb.org/t/p/original/";
+        String baseUrl = "https://image.tmdb.org/t/p/original";
 //        String fullPath = baseUrl + backdropPath.get(rand);
 
         String fullPath = baseUrl + backdropPathL.get(rand).get(0);
@@ -343,6 +394,7 @@ public class MainActivity extends AppCompatActivity implements AdapterBanner.OnC
                     .into(new CustomTarget<Drawable>() {
                         @Override
                         public void onResourceReady(@NonNull Drawable resource, @Nullable Transition<? super Drawable> transition) {
+                            binding.frameBG.setBackgroundColor(getResources().getColor(R.color.grey_900));
                             binding.mainBG.setBackground(resource);
                             binding.mainBG.startAnimation(aEnter);
                             binding.tvPosterTitle.setText(backdropPathL.get(rand).get(1));
@@ -356,6 +408,10 @@ public class MainActivity extends AppCompatActivity implements AdapterBanner.OnC
             Notify.show("Set Wallpaper Failed");
         }
 
+    }
+
+    public void selectInputDialog() {
+        InputDialog.create(this).show();
     }
 
 //    @Override
