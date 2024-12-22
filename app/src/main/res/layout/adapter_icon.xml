@@ -11,12 +11,12 @@
     android:focusableInTouchMode="true"
     android:gravity="center"
     android:orientation="vertical"
-    android:padding="12dp">
+    android:padding="8dp">
 
     <com.google.android.material.imageview.ShapeableImageView
         android:id="@+id/icon"
-        android:layout_width="72dp"
-        android:layout_height="72dp"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
         android:scaleType="fitXY"
         app:shapeAppearanceOverlay="@style/VodRound" />
 

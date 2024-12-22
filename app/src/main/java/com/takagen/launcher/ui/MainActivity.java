@@ -14,6 +14,8 @@ import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.text.TextUtils;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.animation.Animation;
 import android.widget.Button;
@@ -33,6 +35,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.takagen.launcher.App;
 import com.takagen.launcher.R;
+import com.takagen.launcher.Setting;
 import com.takagen.launcher.adapter.AdapterBanner;
 import com.takagen.launcher.adapter.AdapterIcon;
 import com.takagen.launcher.bean.AppInfo;
@@ -57,9 +60,17 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity implements AdapterBanner.OnClickListener {
 
     FavAppDB db = FavAppDB.get();
-    ArrayList<String> backdropPath = new ArrayList<String>();
-
     ArrayList<List<String>> backdropPathL = new ArrayList<>();
+
+    // For testing
+    String id_0 = "com.google.android.videos/.tv.usecase.tvinput.playback.TvInputService"; // Tuner
+    String id_1 = "com.mediatek.tvinput/.hdmi.HDMIInputService/HW4";     // HDMI 1
+    String id_2 = "com.mediatek.tvinput/.hdmi.HDMIInputService/HW5";     // HDMI 2
+    String id_3 = "com.mediatek.tvinput/.hdmi.HDMIInputService/HW6";     // HDMI 3
+    String id_av = "com.mediatek.tvinput/.composite.CompositeInputService/HW1";     // AV Composite
+
+    String apiKey = Setting.getTMDBKey();
+
     private ActivityMainBinding binding;
     private AdapterIcon mAdapter;
     private AdapterBanner mAdapterB;
@@ -68,13 +79,13 @@ public class MainActivity extends AppCompatActivity implements AdapterBanner.OnC
     private Animation aEnter;
     private Animation aExit;
 
+    // For wallpapers
     private Uri mUri;
-    String id_0 = "com.google.android.videos/.tv.usecase.tvinput.playback.TvInputService"; // Tuner
-    String id_1 = "com.mediatek.tvinput/.hdmi.HDMIInputService/HW4";     // HDMI 1
-    String id_2 = "com.mediatek.tvinput/.hdmi.HDMIInputService/HW5";     // HDMI 2
-    String id_3 = "com.mediatek.tvinput/.hdmi.HDMIInputService/HW6";     // HDMI 3
-    String id_av = "com.mediatek.tvinput/.composite.CompositeInputService/HW1";     // AV Composite
+    private int wall_ori;
+    private int posterCount;
 
+    // Auto-Cycle wallpaper
+    private Runnable mR1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,17 +98,20 @@ public class MainActivity extends AppCompatActivity implements AdapterBanner.OnC
     }
 
     private void initView() {
-
+        // Set Animation
         this.aEnter = ResUtil.getAnim(R.anim.enter_anim);
         this.aExit = ResUtil.getAnim(R.anim.exit_anim);
 
+        // Get Apps Banners + Icons
         setRecyclerView();
         mAdapter.getApp(1);    // Get only with Icons, no banners
         mAdapterB.getApp(2);
 
+        // Set Clock
         mClock = Clock.create(binding.tvTime).format("HH:mm");
         mClockDate = Clock.create(binding.tvDate).format("dd MMMM\nEEEE");
 
+        binding.tvPosterTitle.setOnClickListener(this::onMenuClick);
         binding.tvRefresh.setOnClickListener(this::onMenuClick);
         binding.tvInput.setOnClickListener(this::onMenuClick);
         binding.tvClear.setOnClickListener(this::onMenuClick);
@@ -105,8 +119,12 @@ public class MainActivity extends AppCompatActivity implements AdapterBanner.OnC
         binding.tvMenu.setOnClickListener(this::onMenuClick);
         binding.tvMenu.setOnLongClickListener(this::onLongMenu);
 
+        // Set Wifi Icon + Wallpaper
         setIcon();
         setWall();
+
+        // Auto-Cycle Wallpaper runnable
+        mR1 = this::cycleWallpaper;
 
         // For Testing only - Show Pinned
         binding.testGet.setOnClickListener(this::getFavApp);
@@ -203,6 +221,23 @@ public class MainActivity extends AppCompatActivity implements AdapterBanner.OnC
         super.onResume();
         mClock.start();
         mClockDate.start();
+
+        // Set Wifi Icon
+        setIcon();
+
+        // Set Auto-Cycle Wallpaper or not
+        if (Setting.getAuto() == 0) {
+            setR1Callback();
+        } else {
+            App.removeCallbacks(mR1);
+        }
+
+        // Set Wallpaper Type
+        if (wall_ori != Setting.getWall()) {
+            backdropPathL.clear();
+            posterCount = 0;
+            setWall();
+        }
     }
 
     @Override
@@ -213,7 +248,7 @@ public class MainActivity extends AppCompatActivity implements AdapterBanner.OnC
     }
 
     private void onMenuClick(View v) {
-        if (v == binding.tvRefresh) {
+        if (v == binding.tvRefresh || v == binding.tvPosterTitle) {
             setWallFinish();
         } else if (v == binding.tvInput) {
             selectInputDialog();
@@ -231,7 +266,9 @@ public class MainActivity extends AppCompatActivity implements AdapterBanner.OnC
             });
             alertDialog.show();
         } else if (v == binding.tvMenu) {
-            startActivity(new Intent(Settings.ACTION_SETTINGS));
+//            startActivity(new Intent(Settings.ACTION_SETTINGS));
+            wall_ori = Setting.getWall();
+            SettingsActivity.start(this);
         } else if (v == binding.tvWifi) {
             startActivity(new Intent(Settings.ACTION_WIFI_SETTINGS));
         }
@@ -303,13 +340,14 @@ public class MainActivity extends AppCompatActivity implements AdapterBanner.OnC
 
 
     public void setWall() {
+        if (TextUtils.isEmpty(apiKey)) return;
 
         new Thread(new Runnable() {
             @Override
             public void run() {
-                openURL(1);
-                openURL(2);
-                openURL(3);
+                openURL(Setting.getWall(), 1);
+                openURL(Setting.getWall(), 2);
+                openURL(Setting.getWall(), 3);
 
                 runOnUiThread(new Runnable() {
                     public void run() {
@@ -322,14 +360,39 @@ public class MainActivity extends AppCompatActivity implements AdapterBanner.OnC
 
     }
 
-    public void openURL(Integer page) {
-        String apiKey = "5622cafbfe8f8cfe358a29c53e19bba0";  //  f3d2f6963f370a24758969434c14cef0
+    public void openURL(Integer type, Integer page) {
+//        String apiKey = "5622cafbfe8f8cfe358a29c53e19bba0";  //  f3d2f6963f370a24758969434c14cef0
 
+        String finalURL;
+        String popular = "&sort_by=popularity.desc";
         String specific = "https://api.themoviedb.org/3/tv/" + "95479" + "/images" + "?api_key=" + apiKey + "&include_image_language=en%2Cnull";
         String trending = "https://api.themoviedb.org/3/trending/all/week?api_key=" + apiKey + "&language=en-US&page=" + page;
+        String animeURL = "https://api.themoviedb.org/3/discover/tv?api_key=" + apiKey + "&language=en-US&with_genres=16&with_keywords=210024&page=" + page;
+        String movieURL = "https://api.themoviedb.org/3/discover/movie?api_key=" + apiKey + "&language=en-US&page=" + page + popular;
+        String seriesURL = "https://api.themoviedb.org/3/trending/tv/week?api_key=" + apiKey + "&language=en-US&page=" + page;
+
+        switch (type) {
+            case 0:
+                finalURL = trending;
+                break;
+            case 1:
+                finalURL = animeURL;
+                break;
+            case 2:
+                finalURL = movieURL;
+                break;
+            case 3:
+                finalURL = seriesURL;
+                break;
+            default:
+                finalURL = animeURL;
+                break;
+        }
+
+//        String finalURL = animeURL;
 
         try {
-            URL url = new URL(trending);
+            URL url = new URL(finalURL);
             URLConnection request = url.openConnection();
             request.connect();
 
@@ -354,18 +417,27 @@ public class MainActivity extends AppCompatActivity implements AdapterBanner.OnC
                 JsonObject item = items.get(i).getAsJsonObject();
                 List<String> row = new ArrayList<>();
 
-                t_path = item.get("backdrop_path").getAsString();
+                if (item.has("backdrop_path") && !item.get("backdrop_path").isJsonNull()) {
+                    t_path = item.get("backdrop_path").getAsString();
+                } else {
+                    continue;
+                }
+
                 row.add(t_path);                                       // Column 1 : Backdrop path
-                if (item.has("name")) {
-                    t_name = item.get("name").getAsString();
+                if (item.has("original_name")) {
+                    t_name = item.get("original_name").getAsString();
                     row.add(t_name);                                   // Column 2 : Name, or
                 } else if (item.has("title")) {
                     t_name = item.get("title").getAsString();
                     row.add(t_name);                                   // Column 2 : Title
+                } else if (item.has("name")) {
+                    t_name = item.get("name").getAsString();
+                    row.add(t_name);                                   // Column 2 : Original Name
                 }
 
                 backdropPathL.add(row);
-                System.out.println("backdrop_pathL: " + t_path + " - " + t_name + "\n");
+                posterCount = ++posterCount;
+                System.out.println(posterCount + " backdrop_pathL: " + t_path + " - " + t_name + "\n");
             }
         } catch (IOException e) {
             System.out.println("TMDB open Error");
@@ -373,19 +445,15 @@ public class MainActivity extends AppCompatActivity implements AdapterBanner.OnC
     }
 
     public void setWallFinish() {
-
         if (backdropPathL.isEmpty()) return;
 
-        // Get random number between 0 - 39
-        int n = 60;
+        // Get random number between 0 - posterCount
+        int n = posterCount;
         int rand = (int) (Math.random() * n);
 
         String baseUrl = "https://image.tmdb.org/t/p/original";
-//        String fullPath = baseUrl + backdropPath.get(rand);
-
         String fullPath = baseUrl + backdropPathL.get(rand).get(0);
-//        System.out.println("takagen " + backdropPathL.get(rand).get(0));
-//        System.out.println("takagen " + backdropPathL.get(rand).get(1));
+        System.out.println("takagen " + backdropPathL.get(rand).get(0) + " " + fullPath);
 
         // Update Background Resource
         try {
@@ -410,25 +478,34 @@ public class MainActivity extends AppCompatActivity implements AdapterBanner.OnC
 
     }
 
+    @Override
+    public boolean dispatchKeyEvent(KeyEvent event) {
+        int action = event.getAction();
+        int keyCode = event.getKeyCode();
+        View currentFocus = this.getCurrentFocus();
+
+        if ((action == KeyEvent.ACTION_DOWN)) {
+            if (currentFocus == binding.tvPosterTitle && (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) ||
+                    currentFocus == binding.tvMenu && (keyCode == KeyEvent.KEYCODE_DPAD_RIGHT)) {
+                Utils.shakeView(currentFocus);
+            }
+        }
+        return super.dispatchKeyEvent(event);
+    }
+
+    // Input Selection : HDMI / Composite
     public void selectInputDialog() {
         InputDialog.create(this).show();
     }
 
-//    @Override
-//    public boolean dispatchKeyEvent(KeyEvent event) {
-//        int action = event.getAction();
-//        int keyCode = event.getKeyCode();
-//
-//        // takagen99 : to set focus back to tvVod when press up
-//        if (binding.recyclerBanner.isFocused()) {
-//            Notify.show("Focus test tset " + getCurrentFocus());
-//        } else if (binding.tvWifi.isFocused()) {
-//            Notify.show("Wifi Focus test tset " + getCurrentFocus());
-//        } else {
-//            Notify.show("not Focus test tset " + getCurrentFocus());
-//        }
-//
-//        return super.dispatchKeyEvent(event);
-//    }
+    // Auto-Cycle Wallpaper
+    private void setR1Callback() {
+        App.post(mR1, 30000);
+    }
+
+    private void cycleWallpaper() {
+        setWallFinish();
+        setR1Callback();
+    }
 
 }

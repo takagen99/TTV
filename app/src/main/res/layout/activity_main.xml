@@ -56,10 +56,16 @@
                 android:id="@+id/tvPosterTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
-                android:focusable="false"
-                android:focusableInTouchMode="false"
+                android:background="@drawable/selector_home"
+                android:clickable="true"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
                 android:fontFamily="@font/roboto_thin"
+                android:paddingTop="5dp"
+                android:paddingBottom="5dp"
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp"
+                android:nextFocusLeft="@id/tvPosterTitle"
                 android:textColor="@android:color/white"
                 android:textSize="12sp"
                 tools:text="poster title" />
@@ -75,7 +81,8 @@
                 android:focusableInTouchMode="true"
                 android:padding="7dp"
                 android:src="@drawable/ic_home_refresh"
-                android:tag="hmTop" />
+                android:tag="hmTop"
+                android:visibility="gone"/>
 
             <ImageView
                 android:id="@+id/tvInput"
@@ -155,7 +162,7 @@
                     android:gravity="center"
                     android:textAlignment="gravity"
                     android:textColor="@android:color/white"
-                    android:textSize="72sp"
+                    android:textSize="64sp"
                     android:textStyle="bold"
                     tools:text="22:00" />
 

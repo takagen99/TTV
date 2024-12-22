@@ -1,4 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">TTV</string>
+
+    <string-array name="on_off">
+        <item>On</item>
+        <item>Off</item>
+    </string-array>
+
+    <string-array name="select_wall">
+        <item>Trending</item>
+        <item>Anime</item>
+        <item>Movies</item>
+        <item>TV Series</item>
+    </string-array>
+
 </resources>

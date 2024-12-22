@@ -13,6 +13,7 @@ import androidx.annotation.DrawableRes;
 import androidx.core.content.ContextCompat;
 
 import com.takagen.launcher.App;
+import com.takagen.launcher.R;
 import com.takagen.launcher.bean.AppInfo;
 import com.takagen.launcher.bean.FavApp;
 import com.takagen.launcher.db.FavAppDB;
@@ -34,6 +35,12 @@ public class Utils {
 
     public static Drawable getDrawable(@DrawableRes int resId) {
         return ContextCompat.getDrawable(App.get(), resId);
+    }
+
+    public static void shakeView(View v) {
+        Animation shake = ResUtil.getAnim(R.anim.shake);
+        v.clearAnimation();
+        v.startAnimation(shake);
     }
 
     @SuppressLint("QueryPermissionsNeeded")
