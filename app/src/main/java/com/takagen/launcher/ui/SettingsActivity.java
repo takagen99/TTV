@@ -18,6 +18,7 @@ import com.takagen.launcher.BuildConfig;
 import com.takagen.launcher.R;
 import com.takagen.launcher.Setting;
 import com.takagen.launcher.databinding.ActivitySettingsBinding;
+import com.takagen.launcher.utils.Notify;
 import com.takagen.launcher.utils.ResUtil;
 import com.takagen.launcher.utils.Utils;
 
@@ -27,6 +28,7 @@ public class SettingsActivity extends AppCompatActivity {
 
     private String[] auto;
     private String[] wall;
+    private String[] intercept;
 
     public static void start(Activity activity) {
         activity.startActivity(new Intent(activity, SettingsActivity.class));
@@ -45,6 +47,7 @@ public class SettingsActivity extends AppCompatActivity {
     private void initView() {
         binding.wallText.setText((wall = ResUtil.getStringArray(R.array.select_wall))[Setting.getWall()]);
         binding.wallAutoText.setText((auto = ResUtil.getStringArray(R.array.on_off))[Setting.getAuto()]);
+        binding.interceptText.setText((intercept = ResUtil.getStringArray(R.array.on_off))[Setting.getIntercept()]);
         binding.tmdbKeyText.setText(Setting.getTMDBKey());
         binding.appVersion.setText("Version " + BuildConfig.VERSION_CODE + " - " + BuildConfig.VERSION_NAME);
         binding.tmdbKey.requestFocus();
@@ -53,9 +56,11 @@ public class SettingsActivity extends AppCompatActivity {
     private void initEvent() {
         binding.wall.setOnClickListener(this::setWall);
         binding.wallAuto.setOnClickListener(this::setAuto);
+        binding.intercept.setOnClickListener(this::setIntercept);
         binding.tmdbKey.setOnClickListener(this::ontmdbKey);
         binding.appSetting.setOnClickListener(this::goAppSetting);
         binding.systemSetting.setOnClickListener(this::goSystemSetting);
+        binding.systemAccessibiliy.setOnClickListener(this::goSystemAccess);
 
         binding.tmdbKeyText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
@@ -83,6 +88,10 @@ public class SettingsActivity extends AppCompatActivity {
 
     private void goSystemSetting(View v) {
         startActivity(new Intent(Settings.ACTION_SETTINGS));
+    }
+
+    private void goSystemAccess(View v) {
+        startActivity(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS));
     }
 
     @Override
@@ -118,6 +127,15 @@ public class SettingsActivity extends AppCompatActivity {
         int index = Setting.getAuto();
         Setting.putAuto(index = index == auto.length - 1 ? 0 : ++index);
         binding.wallAutoText.setText(auto[index]);
+    }
+
+    private void setIntercept(View view) {
+        int index = Setting.getIntercept();
+        Setting.putIntercept(index = index == intercept.length - 1 ? 0 : ++index);
+        binding.interceptText.setText(intercept[index]);
+        if (index == 0) {
+            Notify.show("Please grant Accessibility");
+        }
     }
 
     @Override

@@ -170,7 +170,7 @@
                 </LinearLayout>
 
                 <LinearLayout
-                    android:id="@+id/appSetting"
+                    android:id="@+id/intercept"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="14dp"
@@ -186,32 +186,127 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Enter App Settings"
+                        android:layout_marginEnd="16dp"
+                        android:text="Intercept Home Button"
                         android:textColor="@color/white"
                         android:textSize="18sp" />
+
+                    <TextView
+                        android:id="@+id/interceptText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="end"
+                        android:textColor="@color/white"
+                        android:textSize="18sp"
+                        tools:text="Off" />
                 </LinearLayout>
 
                 <LinearLayout
-                    android:id="@+id/systemSetting"
+
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="14dp"
-                    android:background="@drawable/selector_setting"
-                    android:focusable="true"
-                    android:focusableInTouchMode="true"
-                    android:orientation="horizontal"
-                    android:paddingStart="12dp"
-                    android:paddingTop="6dp"
-                    android:paddingEnd="12dp"
-                    android:paddingBottom="6dp">
+                    android:orientation="horizontal">
 
                     <TextView
+                        android:id="@+id/systemAccessibiliy"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Enter System Settings"
+                        android:background="@drawable/selector_setting"
+                        android:gravity="center"
+                        android:minWidth="160dp"
+                        android:paddingStart="12dp"
+                        android:paddingTop="6dp"
+                        android:paddingEnd="12dp"
+                        android:paddingBottom="6dp"
+                        android:text="Accessibility"
+                        android:textColor="@color/white"
+                        android:textSize="18sp" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1" />
+
+                    <TextView
+                        android:id="@+id/appSetting"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/selector_setting"
+                        android:gravity="center"
+                        android:minWidth="160dp"
+                        android:paddingStart="12dp"
+                        android:paddingTop="6dp"
+                        android:paddingEnd="12dp"
+                        android:paddingBottom="6dp"
+                        android:text="App Settings"
+                        android:textColor="@color/white"
+                        android:textSize="18sp" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1" />
+
+                    <TextView
+                        android:id="@+id/systemSetting"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/selector_setting"
+                        android:gravity="center"
+                        android:minWidth="160dp"
+                        android:paddingStart="12dp"
+                        android:paddingTop="6dp"
+                        android:paddingEnd="12dp"
+                        android:paddingBottom="6dp"
+                        android:text="System Settings"
                         android:textColor="@color/white"
                         android:textSize="18sp" />
                 </LinearLayout>
+
+<!--                <LinearLayout-->
+<!--                    android:id="@+id/appSetting"-->
+<!--                    android:layout_width="match_parent"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:layout_marginTop="14dp"-->
+<!--                    android:background="@drawable/selector_setting"-->
+<!--                    android:focusable="true"-->
+<!--                    android:focusableInTouchMode="true"-->
+<!--                    android:orientation="horizontal"-->
+<!--                    android:paddingStart="12dp"-->
+<!--                    android:paddingTop="6dp"-->
+<!--                    android:paddingEnd="12dp"-->
+<!--                    android:paddingBottom="6dp">-->
+
+<!--                    <TextView-->
+<!--                        android:layout_width="wrap_content"-->
+<!--                        android:layout_height="wrap_content"-->
+<!--                        android:text="Enter App Settings"-->
+<!--                        android:textColor="@color/white"-->
+<!--                        android:textSize="18sp" />-->
+<!--                </LinearLayout>-->
+
+<!--                <LinearLayout-->
+<!--                    android:id="@+id/systemSetting"-->
+<!--                    android:layout_width="match_parent"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:layout_marginTop="14dp"-->
+<!--                    android:background="@drawable/selector_setting"-->
+<!--                    android:focusable="true"-->
+<!--                    android:focusableInTouchMode="true"-->
+<!--                    android:orientation="horizontal"-->
+<!--                    android:paddingStart="12dp"-->
+<!--                    android:paddingTop="6dp"-->
+<!--                    android:paddingEnd="12dp"-->
+<!--                    android:paddingBottom="6dp">-->
+
+<!--                    <TextView-->
+<!--                        android:layout_width="wrap_content"-->
+<!--                        android:layout_height="wrap_content"-->
+<!--                        android:text="Enter System Settings"-->
+<!--                        android:textColor="@color/white"-->
+<!--                        android:textSize="18sp" />-->
+<!--                </LinearLayout>-->
 
                 <TextView
                     android:id="@+id/appVersion"

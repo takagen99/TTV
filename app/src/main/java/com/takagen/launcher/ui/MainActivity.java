@@ -1,5 +1,7 @@
 package com.takagen.launcher.ui;
-
+import android.app.Activity;
+import android.app.ActivityManager;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -71,7 +73,7 @@ public class MainActivity extends AppCompatActivity implements AdapterBanner.OnC
 
     String apiKey = Setting.getTMDBKey();
 
-    private ActivityMainBinding binding;
+    public static ActivityMainBinding binding;
     private AdapterIcon mAdapter;
     private AdapterBanner mAdapterB;
     private Clock mClock;
@@ -86,6 +88,7 @@ public class MainActivity extends AppCompatActivity implements AdapterBanner.OnC
 
     // Auto-Cycle wallpaper
     private Runnable mR1;
+    private boolean isRunning;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -227,8 +230,11 @@ public class MainActivity extends AppCompatActivity implements AdapterBanner.OnC
 
         // Set Auto-Cycle Wallpaper or not
         if (Setting.getAuto() == 0) {
-            setR1Callback();
+            if (!isRunning) {
+                setR1Callback();
+            }
         } else {
+            isRunning = false;
             App.removeCallbacks(mR1);
         }
 
@@ -245,6 +251,34 @@ public class MainActivity extends AppCompatActivity implements AdapterBanner.OnC
         super.onPause();
         mClock.stop();
         mClockDate.stop();
+
+        // Stop Cycling Wallpaper
+        isRunning = false;
+        App.removeCallbacks(mR1);
+
+//        // Workaround to detect & override HOME press
+//        ActivityManager activityManager = (ActivityManager) getApplicationContext()
+//                .getSystemService(Context.ACTIVITY_SERVICE);
+//        if (isApplicationSentToBackground(MainActivity.this)){
+//            // Do what you want to do on detecting Home Key being Pressed
+//            Notify.show("home press send to BG");
+//            moveToHome();
+//            activityManager.moveTaskToFront(getTaskId(), 0);
+//        }
+
+    }
+
+    @SuppressWarnings("deprecation")
+    public boolean isApplicationSentToBackground(final Context context) {
+        ActivityManager am = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+        List<ActivityManager.RunningTaskInfo> tasks = am.getRunningTasks(1);
+        if (!tasks.isEmpty()) {
+            ComponentName topActivity = tasks.get(0).topActivity;
+            if (!topActivity.getPackageName().equals(context.getPackageName())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void onMenuClick(View v) {
@@ -474,6 +508,7 @@ public class MainActivity extends AppCompatActivity implements AdapterBanner.OnC
                     });
         } catch (Exception e) {
             Notify.show("Set Wallpaper Failed");
+            App.removeCallbacks(mR1);
         }
 
     }
@@ -500,12 +535,46 @@ public class MainActivity extends AppCompatActivity implements AdapterBanner.OnC
 
     // Auto-Cycle Wallpaper
     private void setR1Callback() {
+        isRunning = true;
         App.post(mR1, 30000);
     }
 
     private void cycleWallpaper() {
         setWallFinish();
         setR1Callback();
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (!(binding.recyclerBanner.getSelectedPosition() == 0) || !binding.recyclerBanner.isFocused()) {
+            binding.recyclerBanner.smoothScrollToPosition(0);
+            binding.recyclerBanner.requestFocus();
+            return;
+        } else {
+            super.onBackPressed();
+        }
+//        Notify.show("Test back");
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mClock.release();
+        mClockDate.release();
+        App.removeCallbacks(mR1);
+    }
+
+    @Override
+    protected void onUserLeaveHint() {
+//        Notify.show("test user leave hint");
+        super.onUserLeaveHint();
+    }
+
+    public static void moveToHome() {
+        if (!(binding.recyclerBanner.getSelectedPosition() == 0) || !binding.recyclerBanner.isFocused()) {
+            binding.recyclerBanner.smoothScrollToPosition(0);
+            binding.recyclerBanner.requestFocus();
+        }
     }
 
 }
