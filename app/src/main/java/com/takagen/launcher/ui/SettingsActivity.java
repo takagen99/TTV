@@ -26,7 +26,8 @@ public class SettingsActivity extends AppCompatActivity {
 
     private ActivitySettingsBinding binding;
 
-    private String[] auto;
+    private String[] autoWall;
+    private String[] autoStart;
     private String[] wall;
     private String[] intercept;
 
@@ -46,7 +47,8 @@ public class SettingsActivity extends AppCompatActivity {
 
     private void initView() {
         binding.wallText.setText((wall = ResUtil.getStringArray(R.array.select_wall))[Setting.getWall()]);
-        binding.wallAutoText.setText((auto = ResUtil.getStringArray(R.array.on_off))[Setting.getAuto()]);
+        binding.wallAutoText.setText((autoWall = ResUtil.getStringArray(R.array.on_off))[Setting.getAutoWall()]);
+        binding.autoStartText.setText((autoStart = ResUtil.getStringArray(R.array.on_off))[Setting.getAutoStart()]);
         binding.interceptText.setText((intercept = ResUtil.getStringArray(R.array.on_off))[Setting.getIntercept()]);
         binding.tmdbKeyText.setText(Setting.getTMDBKey());
         binding.appVersion.setText("Version " + BuildConfig.VERSION_CODE + " - " + BuildConfig.VERSION_NAME);
@@ -55,7 +57,8 @@ public class SettingsActivity extends AppCompatActivity {
 
     private void initEvent() {
         binding.wall.setOnClickListener(this::setWall);
-        binding.wallAuto.setOnClickListener(this::setAuto);
+        binding.wallAuto.setOnClickListener(this::setAutoWall);
+        binding.autoStart.setOnClickListener(this::setAutoStart);
         binding.intercept.setOnClickListener(this::setIntercept);
         binding.tmdbKey.setOnClickListener(this::ontmdbKey);
         binding.appSetting.setOnClickListener(this::goAppSetting);
@@ -123,10 +126,16 @@ public class SettingsActivity extends AppCompatActivity {
         binding.wallText.setText(wall[index]);
     }
 
-    private void setAuto(View view) {
-        int index = Setting.getAuto();
-        Setting.putAuto(index = index == auto.length - 1 ? 0 : ++index);
-        binding.wallAutoText.setText(auto[index]);
+    private void setAutoWall(View view) {
+        int index = Setting.getAutoWall();
+        Setting.putAutoWall(index = index == autoWall.length - 1 ? 0 : ++index);
+        binding.wallAutoText.setText(autoWall[index]);
+    }
+
+    private void setAutoStart(View view) {
+        int index = Setting.getAutoStart();
+        Setting.putAutoStart(index = index == autoStart.length - 1 ? 0 : ++index);
+        binding.autoStartText.setText(autoStart[index]);
     }
 
     private void setIntercept(View view) {

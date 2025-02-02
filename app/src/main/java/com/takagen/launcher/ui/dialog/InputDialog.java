@@ -43,6 +43,7 @@ public class InputDialog {
         dialog = new MaterialAlertDialogBuilder(binding.getRoot().getContext()).setView(binding.getRoot()).create();
         dialog.getWindow().setDimAmount(0.1f);
         dialog.getWindow().setBackgroundDrawableResource(R.drawable.shape_dialog_bg);
+        dialog.getWindow().getAttributes().windowAnimations = R.style.InputDialogAnimation;
         dialog.show();
     }
 
@@ -67,6 +68,7 @@ public class InputDialog {
         } else if (v == binding.tvAV) {
             callInput(id_av);
         }
+        dialog.dismiss();
     }
 
     private void callInput(String id) {

@@ -25,12 +25,21 @@ public class Setting {
     }
 
     // 3. Auto-Cycle Wallpaper
-    public static int getAuto() {
-        return Prefers.getInt("auto", 1);
+    public static int getAutoWall() {
+        return Prefers.getInt("autoWall", 1);
     }
 
-    public static void putAuto(int wall) {
-        Prefers.put("auto", wall);
+    public static void putAutoWall(int autoWall) {
+        Prefers.put("autoWall", autoWall);
+    }
+
+    // 4. Auto-Start App
+    public static int getAutoStart() {
+        return Prefers.getInt("autoStart", 1);
+    }
+
+    public static void putAutoStart(int autoStart) {
+        Prefers.put("autoStart", autoStart);
     }
 
     // 4. Intercepting HOME button

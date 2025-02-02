@@ -14,6 +14,7 @@ import android.media.tv.TvInputManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.text.TextUtils;
@@ -61,6 +62,8 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements AdapterBanner.OnClickListener {
 
+    private static final int CODE_DRAW_OVER_OTHER_APP_PERMISSION = 2084;
+
     FavAppDB db = FavAppDB.get();
     ArrayList<List<String>> backdropPathL = new ArrayList<>();
 
@@ -96,8 +99,19 @@ public class MainActivity extends AppCompatActivity implements AdapterBanner.OnC
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
         Utils.hideSystemUI(this);
-        initView();
-        initEvent();
+//        initView();
+//        initEvent();
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(this)) {
+
+            //If the draw over permission is not available open the settings screen to grant the permission.
+            Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                    Uri.parse("package:" + getPackageName()));
+            startActivityForResult(intent, CODE_DRAW_OVER_OTHER_APP_PERMISSION);
+        } else {
+            initView();
+            initEvent();
+        }
     }
 
     private void initView() {
@@ -229,7 +243,7 @@ public class MainActivity extends AppCompatActivity implements AdapterBanner.OnC
         setIcon();
 
         // Set Auto-Cycle Wallpaper or not
-        if (Setting.getAuto() == 0) {
+        if (Setting.getAutoWall() == 0) {
             if (!isRunning) {
                 setR1Callback();
             }
