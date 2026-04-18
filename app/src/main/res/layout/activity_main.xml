@@ -28,29 +28,12 @@
             android:gravity="center_vertical"
             android:orientation="horizontal"
             android:paddingStart="10dp"
-            android:paddingEnd="10dp"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
+            android:paddingEnd="10dp">
 
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1" />
-
-            <Button
-                android:id="@+id/testGet"
-                android:layout_width="100dp"
-                android:layout_height="50dp"
-                android:text="get"
-                android:visibility="gone"></Button>
-
-            <Button
-                android:id="@+id/testHDMI"
-                android:layout_width="100dp"
-                android:layout_height="50dp"
-                android:text="HDMI"
-                android:visibility="gone"></Button>
 
             <TextView
                 android:id="@+id/tvPosterTitle"
@@ -61,11 +44,11 @@
                 android:focusable="true"
                 android:focusableInTouchMode="true"
                 android:fontFamily="@font/roboto_thin"
-                android:paddingTop="5dp"
-                android:paddingBottom="5dp"
-                android:paddingStart="8dp"
-                android:paddingEnd="8dp"
                 android:nextFocusLeft="@id/tvPosterTitle"
+                android:paddingStart="8dp"
+                android:paddingTop="5dp"
+                android:paddingEnd="8dp"
+                android:paddingBottom="5dp"
                 android:textColor="@android:color/white"
                 android:textSize="12sp"
                 tools:text="poster title" />
@@ -81,8 +64,7 @@
                 android:focusableInTouchMode="true"
                 android:padding="7dp"
                 android:src="@drawable/ic_home_refresh"
-                android:tag="hmTop"
-                android:visibility="gone"/>
+                android:visibility="gone" />
 
             <ImageView
                 android:id="@+id/tvInput"
@@ -94,8 +76,7 @@
                 android:focusable="true"
                 android:focusableInTouchMode="true"
                 android:padding="12dp"
-                android:src="@drawable/ic_home_input"
-                android:tag="hmTop" />
+                android:src="@drawable/ic_home_input" />
 
             <ImageView
                 android:id="@+id/tvClear"
@@ -107,8 +88,7 @@
                 android:focusable="true"
                 android:focusableInTouchMode="true"
                 android:padding="5dp"
-                android:src="@drawable/ic_home_clear"
-                android:tag="hmTop" />
+                android:src="@drawable/ic_home_clear" />
 
             <ImageView
                 android:id="@+id/tvWifi"
@@ -120,8 +100,7 @@
                 android:focusable="true"
                 android:focusableInTouchMode="true"
                 android:padding="10dp"
-                android:src="@drawable/ic_home_network_no"
-                android:tag="hmTop" />
+                android:src="@drawable/ic_home_network_no" />
 
             <ImageView
                 android:id="@+id/tvMenu"
@@ -135,115 +114,53 @@
                 android:focusableInTouchMode="true"
                 android:nextFocusRight="@id/tvMenu"
                 android:padding="10dp"
-                android:src="@drawable/ic_home_setting"
-                android:tag="hmTop" />
+                android:src="@drawable/ic_home_setting" />
 
         </LinearLayout>
 
         <LinearLayout
-            android:layout_width="match_parent"
+            android:id="@+id/clockLayout"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"
+            android:layout_margin="24dp"
             android:orientation="horizontal">
 
-            <LinearLayout
+            <TextView
+                android:id="@+id/tvTime"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_margin="24dp"
-                android:orientation="horizontal">
+                android:focusable="false"
+                android:fontFamily="@font/roboto_light"
+                android:gravity="center"
+                android:textColor="@android:color/white"
+                android:textSize="64sp"
+                android:textStyle="bold"
+                tools:text="22:00" />
 
-                <TextView
-                    android:id="@+id/tvTime"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:focusable="false"
-                    android:focusableInTouchMode="false"
-                    android:fontFamily="@font/roboto_light"
-                    android:gravity="center"
-                    android:textAlignment="gravity"
-                    android:textColor="@android:color/white"
-                    android:textSize="64sp"
-                    android:textStyle="bold"
-                    tools:text="22:00" />
-
-                <TextView
-                    android:id="@+id/tvDate"
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:layout_marginStart="16dp"
-                    android:focusable="false"
-                    android:focusableInTouchMode="false"
-                    android:fontFamily="@font/roboto_thin"
-                    android:gravity="center|start|left"
-                    android:lineSpacingMultiplier="0.9"
-                    android:textAlignment="gravity"
-                    android:textColor="@android:color/white"
-                    android:textSize="24sp"
-                    tools:text="20 April\nWednesday" />
-
-            </LinearLayout>
+            <TextView
+                android:id="@+id/tvDate"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_marginStart="16dp"
+                android:focusable="false"
+                android:fontFamily="@font/roboto_thin"
+                android:gravity="center|start"
+                android:lineSpacingMultiplier="0.9"
+                android:textColor="@android:color/white"
+                android:textSize="24sp"
+                tools:text="20 April\nWednesday" />
 
         </LinearLayout>
 
-        <ScrollView
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/mainRecycler"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:focusable="false"
-            android:focusableInTouchMode="false"
-            android:scrollbars="none">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="24dp"
-                    android:focusable="false"
-                    android:focusableInTouchMode="false"
-                    android:fontFamily="@font/roboto_thin"
-                    android:text="TV Apps"
-                    android:textColor="@android:color/white"
-                    android:textSize="16sp"
-                    tools:text="TV Apps" />
-
-                <com.takagen.launcher.ui.custom.CustomHorizontalGridView
-                    android:id="@+id/recycler_banner"
-                    android:layout_width="match_parent"
-                    android:layout_height="155dp"
-                    android:clipChildren="false"
-                    android:clipToPadding="false"
-                    android:padding="24dp"
-                    app:focusOutEnd="true"
-                    app:focusOutFront="true" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="24dp"
-                    android:focusable="false"
-                    android:focusableInTouchMode="false"
-                    android:fontFamily="@font/roboto_thin"
-                    android:text="Mobile Apps"
-                    android:textColor="@android:color/white"
-                    android:textSize="16sp"
-                    tools:text="Mobile Apps" />
-
-                <com.takagen.launcher.ui.custom.CustomHorizontalGridView
-                    android:id="@+id/recycler_icon"
-                    android:layout_width="match_parent"
-                    android:layout_height="170dp"
-                    android:clipChildren="false"
-                    android:clipToPadding="false"
-                    android:padding="24dp"
-                    app:focusOutEnd="true"
-                    app:focusOutFront="true" />
-
-            </LinearLayout>
-
-        </ScrollView>
+            android:layout_height="match_parent"
+            android:clipChildren="false"
+            android:clipToPadding="false"
+            android:descendantFocusability="afterDescendants"
+            android:focusable="true"
+            android:focusableInTouchMode="true" />
 
     </LinearLayout>
 

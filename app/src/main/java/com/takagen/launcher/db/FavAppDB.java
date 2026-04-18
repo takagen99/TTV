@@ -13,7 +13,7 @@ import com.takagen.launcher.db.dao.FavAppDao;
 @Database(entities = {FavApp.class}, version = FavAppDB.VERSION)
 public abstract class FavAppDB extends RoomDatabase {
 
-    public static final int VERSION = 32;
+    public static final int VERSION = 33;
     public static final String NAME = "fav";
 
     private static volatile FavAppDB instance;

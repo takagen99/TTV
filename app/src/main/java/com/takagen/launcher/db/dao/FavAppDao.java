@@ -14,21 +14,26 @@ import java.util.List;
 public interface FavAppDao {
 
     @Insert
-    public void addApp(FavApp favApp);
+    void addApp(FavApp favApp);
 
     @Update
-    public void updateApp(FavApp favApp);
+    void updateApp(FavApp favApp);
 
     @Delete
-    public void deleteApp(FavApp favApp);
+    void deleteApp(FavApp favApp);
 
-    @Query("select * from FavApp" )
-    public List<FavApp> getAllFavApp();
+    @Query("SELECT * FROM FavApp ORDER BY isTv DESC, sortIndex ASC")
+    List<FavApp> getAllFavApp();
 
-    @Query("DELETE FROM FavApp where name <> 0" )
-    public abstract void deleteAllFavApp();
+    @Query("SELECT * FROM FavApp WHERE isTv = :isTv ORDER BY sortIndex ASC")
+    List<FavApp> getFavApps(boolean isTv);
 
-    @Query("DELETE FROM FavApp where pack = :packageName" )
-    public void deletePack(String packageName);
+    @Query("DELETE FROM FavApp")
+    void deleteAllFavApp();
 
+    @Query("DELETE FROM FavApp WHERE isTv = :isTv")
+    void deleteBucket(boolean isTv);
+
+    @Query("DELETE FROM FavApp WHERE pack = :packageName")
+    void deletePack(String packageName);
 }

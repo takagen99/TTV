@@ -51,6 +51,8 @@ public class SettingsActivity extends AppCompatActivity {
         binding.autoStartText.setText((autoStart = ResUtil.getStringArray(R.array.on_off))[Setting.getAutoStart()]);
         binding.interceptText.setText((intercept = ResUtil.getStringArray(R.array.on_off))[Setting.getIntercept()]);
         binding.tmdbKeyText.setText(Setting.getTMDBKey());
+        binding.tvRowHeightText.setText(Setting.getTvRowDp() + "dp");
+        binding.mobileRowHeightText.setText(Setting.getMobileRowDp() + "dp");
         binding.appVersion.setText("Version " + BuildConfig.VERSION_CODE + " - " + BuildConfig.VERSION_NAME);
         binding.tmdbKey.requestFocus();
     }
@@ -61,19 +63,18 @@ public class SettingsActivity extends AppCompatActivity {
         binding.autoStart.setOnClickListener(this::setAutoStart);
         binding.intercept.setOnClickListener(this::setIntercept);
         binding.tmdbKey.setOnClickListener(this::ontmdbKey);
+        binding.tvRowHeight.setOnClickListener(this::setTvRowHeight);
+        binding.mobileRowHeight.setOnClickListener(this::setMobileRowHeight);
         binding.appSetting.setOnClickListener(this::goAppSetting);
         binding.systemSetting.setOnClickListener(this::goSystemSetting);
         binding.systemAccessibiliy.setOnClickListener(this::goSystemAccess);
 
-        binding.tmdbKeyText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-            @Override
-            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                if (actionId == EditorInfo.IME_ACTION_DONE) {
-                    savetmdbKey();      //save tmdbKey on Enter
-                    return true;
-                }
-                return false;
+        binding.tmdbKeyText.setOnEditorActionListener((v, actionId, event) -> {
+            if (actionId == EditorInfo.IME_ACTION_DONE) {
+                savetmdbKey();
+                return true;
             }
+            return false;
         });
     }
 
@@ -85,8 +86,23 @@ public class SettingsActivity extends AppCompatActivity {
         Setting.putTMDBKey(String.valueOf(binding.tmdbKeyText.getText()));
     }
 
+    private void setTvRowHeight(View view) {
+        int index = Setting.getTvRowIndex();
+        index = (index + 1) % Setting.TV_ROW_HEIGHTS.length;
+        Setting.putTvRowIndex(index);
+        binding.tvRowHeightText.setText(Setting.TV_ROW_HEIGHTS[index] + "dp");
+    }
+
+    private void setMobileRowHeight(View view) {
+        int index = Setting.getMobileRowIndex();
+        index = (index + 1) % Setting.MOB_ROW_HEIGHTS.length;
+        Setting.putMobileRowIndex(index);
+        binding.mobileRowHeightText.setText(Setting.MOB_ROW_HEIGHTS[index] + "dp");
+    }
+
     private void goAppSetting(View v) {
-        startActivity(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", getPackageName(), null)));
+        startActivity(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                Uri.fromParts("package", getPackageName(), null)));
     }
 
     private void goSystemSetting(View v) {
@@ -122,7 +138,6 @@ public class SettingsActivity extends AppCompatActivity {
     private void setWall(View view) {
         int index = Setting.getWall();
         Setting.putWall(index = index == wall.length - 1 ? 0 : ++index);
-//        Notify.show("index " + index);
         binding.wallText.setText(wall[index]);
     }
 
@@ -149,8 +164,6 @@ public class SettingsActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-//        Setting.putTMDBKey(String.valueOf(binding.tmdbKeyText.getText()));
         super.onBackPressed();
     }
-
 }
