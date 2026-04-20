@@ -1,20 +1,14 @@
 package com.takagen.launcher.service;
 
 import android.accessibilityservice.AccessibilityService;
-import android.app.ActivityManager;
-import android.content.Context;
 import android.content.Intent;
 import android.view.KeyEvent;
 import android.view.accessibility.AccessibilityEvent;
 
 import com.takagen.launcher.App;
-import com.takagen.launcher.Setting;
 import com.takagen.launcher.ui.MainActivity;
 
-import java.util.List;
-
 public class AccessibilityKeyDetector extends AccessibilityService {
-    ActivityManager activityManager = null;
 
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
@@ -28,30 +22,18 @@ public class AccessibilityKeyDetector extends AccessibilityService {
 
     @Override
     protected boolean onKeyEvent(KeyEvent event) {
-        // Exit if not intercepting Home button
-        if (Setting.getIntercept() == 1) return false;
-
         try {
-            int action = event.getAction();
             int keyCode = event.getKeyCode();
-
-            if (action == KeyEvent.ACTION_UP) {
-                if (keyCode == KeyEvent.KEYCODE_HOME) {
-//                    ActivityManager activityManager = (ActivityManager) this.getSystemService(Context.ACTIVITY_SERVICE);
-//                    List<ActivityManager.RunningAppProcessInfo> appProcesses = activityManager.getRunningAppProcesses();
-//                    for (ActivityManager.RunningAppProcessInfo appProcess : appProcesses) {
-//                        if (!(appProcess.importance == ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND)) {
-////                            Notify.show("not current foreground App, then trigger start activity");
-//                        } else {
-////                            Notify.show("same app");
-//                            MainActivity.moveToHome();
-//                        }
-//                    }
+            if (keyCode == KeyEvent.KEYCODE_HOME) {
+                if (event.getAction() == KeyEvent.ACTION_UP) {
                     App.post(() -> startApp(), 50);
                 }
+                // Consume both ACTION_DOWN and ACTION_UP so Google TV
+                // launcher never gets a chance to handle the Home key.
+                return true;
             }
         } catch (Exception e) {
-
+            // ignored
         }
         return super.onKeyEvent(event);
     }

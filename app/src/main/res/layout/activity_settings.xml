@@ -3,7 +3,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:animateLayoutChanges="true"
     android:background="@drawable/bg"
     android:keepScreenOn="true"
     tools:ignore="NestedWeights">
@@ -14,61 +13,128 @@
         android:layout_height="wrap_content"
         android:background="@drawable/shape_home_bg" />
 
+    <!-- ══ Left side panel ══ -->
     <LinearLayout
         android:id="@+id/ll_side"
         android:layout_width="220dp"
         android:layout_height="match_parent"
         android:orientation="vertical">
 
+        <!-- Static title (not focusable) -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="start"
-            android:layout_marginStart="40dp"
-            android:layout_marginTop="40dp"
+            android:layout_marginStart="24dp"
+            android:layout_marginTop="100dp"
             android:text="Settings"
             android:textColor="@android:color/white"
             android:textSize="24sp"
             android:textStyle="bold" />
+
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="start"
-            android:layout_marginStart="40dp"
-            android:text="Select Launcher Options"
+            android:layout_marginStart="24dp"
+            android:layout_marginBottom="20dp"
+            android:text="Select section"
             android:textColor="@android:color/white"
-            android:textSize="10sp"/>
+            android:textSize="10sp" />
+
+        <!-- "General" section selector -->
+        <LinearLayout
+            android:id="@+id/sectionMain"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="12dp"
+            android:background="@drawable/selector_setting"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:nextFocusDown="@id/sectionShortcuts"
+            android:orientation="horizontal"
+            android:paddingStart="12dp"
+            android:paddingTop="10dp"
+            android:paddingEnd="12dp"
+            android:paddingBottom="10dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="General"
+                android:textColor="@color/white"
+                android:textSize="16sp" />
+        </LinearLayout>
+
+        <!-- "Shortcuts" section selector -->
+        <LinearLayout
+            android:id="@+id/sectionShortcuts"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginEnd="12dp"
+            android:background="@drawable/selector_setting"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:nextFocusUp="@id/sectionMain"
+            android:orientation="horizontal"
+            android:paddingStart="12dp"
+            android:paddingTop="10dp"
+            android:paddingEnd="12dp"
+            android:paddingBottom="10dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Shortcuts"
+                android:textColor="@color/white"
+                android:textSize="16sp" />
+        </LinearLayout>
+
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1" />
+
+        <TextView
+            android:id="@+id/appVersion"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="20dp"
+            android:text="Version"
+            android:textColor="@color/white"
+            android:textSize="10sp" />
 
     </LinearLayout>
 
-    <ScrollView
+    <!-- ══ Right panel container ══ -->
+    <FrameLayout
+        android:id="@+id/rightContainer"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="top|center_horizontal"
-        android:layout_toRightOf="@id/ll_side"
-        android:focusable="false"
-        android:focusableInTouchMode="false"
-        android:scrollbars="none">
+        android:layout_height="match_parent"
+        android:layout_toRightOf="@id/ll_side">
 
-        <LinearLayout
+        <!-- ── General / main settings panel (default visible) ── -->
+        <ScrollView
+            android:id="@+id/panelMain"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="top|center_horizontal"
-            android:clipChildren="false"
-            android:clipToPadding="false"
             android:focusable="false"
             android:focusableInTouchMode="false"
-            android:orientation="vertical">
+            android:scrollbars="none"
+            android:visibility="visible">
 
             <LinearLayout
-                android:id="@+id/right_home"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
                 android:layout_marginStart="20dp"
-                android:layout_marginTop="35dp"
+                android:layout_marginTop="100dp"
                 android:layout_marginEnd="50dp"
                 android:orientation="vertical">
 
+                <!-- TMDB API Key -->
                 <LinearLayout
                     android:id="@+id/tmdbKey"
                     android:layout_width="match_parent"
@@ -78,7 +144,6 @@
                     android:focusableInTouchMode="true"
                     android:orientation="horizontal"
                     android:paddingStart="12dp"
-                    android:paddingTop="6dp"
                     android:paddingEnd="12dp"
                     android:paddingBottom="6dp">
 
@@ -105,6 +170,7 @@
                         android:textSize="18sp" />
                 </LinearLayout>
 
+                <!-- Wallpaper Type -->
                 <LinearLayout
                     android:id="@+id/wall"
                     android:layout_width="match_parent"
@@ -134,9 +200,10 @@
                         android:gravity="end"
                         android:textColor="@color/white"
                         android:textSize="18sp"
-                        tools:text="High" />
+                        tools:text="Trending" />
                 </LinearLayout>
 
+                <!-- Auto Cycle -->
                 <LinearLayout
                     android:id="@+id/wallAuto"
                     android:layout_width="match_parent"
@@ -166,11 +233,12 @@
                         android:gravity="end"
                         android:textColor="@color/white"
                         android:textSize="18sp"
-                        tools:text="Off" />
+                        tools:text="On" />
                 </LinearLayout>
 
+                <!-- Default TV Launcher (replaces Auto Start + Intercept Home) -->
                 <LinearLayout
-                    android:id="@+id/autoStart"
+                    android:id="@+id/defaultLauncher"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="14dp"
@@ -187,22 +255,23 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="16dp"
-                        android:text="Auto Start on Boot"
+                        android:text="Default TV Launcher"
                         android:textColor="@color/white"
                         android:textSize="18sp" />
 
                     <TextView
-                        android:id="@+id/autoStartText"
+                        android:id="@+id/defaultLauncherText"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:gravity="end"
-                        android:textColor="@color/white"
+                        android:textColor="@color/white_50"
                         android:textSize="18sp"
-                        tools:text="Off" />
+                        tools:text="Set as Default" />
                 </LinearLayout>
 
+                <!-- Show / Hide Apps -->
                 <LinearLayout
-                    android:id="@+id/intercept"
+                    android:id="@+id/showHideApps"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="14dp"
@@ -219,20 +288,20 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="16dp"
-                        android:text="Intercept Home Button"
+                        android:text="Show / Hide Apps"
                         android:textColor="@color/white"
                         android:textSize="18sp" />
 
                     <TextView
-                        android:id="@+id/interceptText"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:gravity="end"
-                        android:textColor="@color/white"
-                        android:textSize="18sp"
-                        tools:text="Off" />
+                        android:text="Manage"
+                        android:textColor="@color/white_50"
+                        android:textSize="18sp" />
                 </LinearLayout>
 
+                <!-- TV App Row Height -->
                 <LinearLayout
                     android:id="@+id/tvRowHeight"
                     android:layout_width="match_parent"
@@ -265,6 +334,7 @@
                         tools:text="130dp" />
                 </LinearLayout>
 
+                <!-- Mobile App Row Height -->
                 <LinearLayout
                     android:id="@+id/mobileRowHeight"
                     android:layout_width="match_parent"
@@ -297,113 +367,117 @@
                         tools:text="120dp" />
                 </LinearLayout>
 
-                <LinearLayout
-                    android:id="@+id/systemAccessibiliy"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="14dp"
-                    android:background="@drawable/selector_setting"
-                    android:focusable="true"
-                    android:focusableInTouchMode="true"
-                    android:orientation="horizontal"
-                    android:paddingStart="12dp"
-                    android:paddingTop="6dp"
-                    android:paddingEnd="12dp"
-                    android:paddingBottom="6dp">
+            </LinearLayout>
+        </ScrollView>
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginEnd="16dp"
-                        android:text="Accessibility"
-                        android:textColor="@color/white"
-                        android:textSize="18sp" />
+        <!-- ── Shortcuts panel (initially hidden) ── -->
+        <LinearLayout
+            android:id="@+id/panelShortcuts"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="100dp"
+            android:layout_marginEnd="50dp"
+            android:orientation="vertical"
+            android:visibility="gone">
 
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:gravity="end"
-                        android:text="Open"
-                        android:textColor="@color/white_50"
-                        android:textSize="18sp" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:id="@+id/appSetting"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="14dp"
-                    android:background="@drawable/selector_setting"
-                    android:focusable="true"
-                    android:focusableInTouchMode="true"
-                    android:orientation="horizontal"
-                    android:paddingStart="12dp"
-                    android:paddingTop="6dp"
-                    android:paddingEnd="12dp"
-                    android:paddingBottom="6dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginEnd="16dp"
-                        android:text="App Settings"
-                        android:textColor="@color/white"
-                        android:textSize="18sp" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:gravity="end"
-                        android:text="Open"
-                        android:textColor="@color/white_50"
-                        android:textSize="18sp" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:id="@+id/systemSetting"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="14dp"
-                    android:background="@drawable/selector_setting"
-                    android:focusable="true"
-                    android:focusableInTouchMode="true"
-                    android:orientation="horizontal"
-                    android:paddingStart="12dp"
-                    android:paddingTop="6dp"
-                    android:paddingEnd="12dp"
-                    android:paddingBottom="6dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginEnd="16dp"
-                        android:text="System Settings"
-                        android:textColor="@color/white"
-                        android:textSize="18sp" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:gravity="end"
-                        android:text="Open"
-                        android:textColor="@color/white_50"
-                        android:textSize="18sp" />
-                </LinearLayout>
+            <!-- Accessibility -->
+            <LinearLayout
+                android:id="@+id/systemAccessibiliy"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/selector_setting"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:orientation="horizontal"
+                android:paddingStart="12dp"
+                android:paddingTop="6dp"
+                android:paddingEnd="12dp"
+                android:paddingBottom="6dp">
 
                 <TextView
-                    android:id="@+id/appVersion"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="14dp"
-                    android:layout_gravity="center"
-                    android:text="Version"
+                    android:layout_marginEnd="16dp"
+                    android:text="Accessibility"
                     android:textColor="@color/white"
-                    android:textSize="14sp" />
+                    android:textSize="18sp" />
 
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="end"
+                    android:text="Open"
+                    android:textColor="@color/white_50"
+                    android:textSize="18sp" />
+            </LinearLayout>
+
+            <!-- App Settings -->
+            <LinearLayout
+                android:id="@+id/appSetting"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:background="@drawable/selector_setting"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:orientation="horizontal"
+                android:paddingStart="12dp"
+                android:paddingTop="6dp"
+                android:paddingEnd="12dp"
+                android:paddingBottom="6dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="16dp"
+                    android:text="App Settings"
+                    android:textColor="@color/white"
+                    android:textSize="18sp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="end"
+                    android:text="Open"
+                    android:textColor="@color/white_50"
+                    android:textSize="18sp" />
+            </LinearLayout>
+
+            <!-- System Settings -->
+            <LinearLayout
+                android:id="@+id/systemSetting"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:background="@drawable/selector_setting"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:orientation="horizontal"
+                android:paddingStart="12dp"
+                android:paddingTop="6dp"
+                android:paddingEnd="12dp"
+                android:paddingBottom="6dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="16dp"
+                    android:text="System Settings"
+                    android:textColor="@color/white"
+                    android:textSize="18sp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="end"
+                    android:text="Open"
+                    android:textColor="@color/white_50"
+                    android:textSize="18sp" />
             </LinearLayout>
 
         </LinearLayout>
 
-    </ScrollView>
+    </FrameLayout>
 
 </RelativeLayout>

@@ -17,6 +17,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.takagen.launcher.App;
@@ -96,8 +97,7 @@ public class MainActivity extends AppCompatActivity implements AdapterRow.Listen
         wallpaper = new Wallpaper(this, binding.frameBG, binding.mainBG, binding.tvPosterTitle,
                 ResUtil.getAnim(R.anim.enter_anim));
         wallpaper.load();
-
-        binding.tvMenu.requestFocus();
+        // Initial focus: deferred to focusFirstApp() after apps finish loading.
     }
 
     private void loadApps() {
@@ -115,9 +115,28 @@ public class MainActivity extends AppCompatActivity implements AdapterRow.Listen
             }
 
             App.post(() -> {
-                if (binding != null) adapter.submit(items);
+                if (binding != null) {
+                    adapter.submit(items);
+                    // After layout settles, focus the first app in the first section row.
+                    binding.mainRecycler.post(this::focusFirstApp);
+                }
             });
         });
+    }
+
+    /** Focus the first child of the first section row (first TV app, or mobile if no TV). */
+    private void focusFirstApp() {
+        if (binding == null) return;
+        for (int i = 0; i < adapter.getItemCount(); i++) {
+            RecyclerView.ViewHolder vh = binding.mainRecycler.findViewHolderForAdapterPosition(i);
+            if (vh != null && vh.itemView instanceof RecyclerView) {
+                RecyclerView inner = (RecyclerView) vh.itemView;
+                if (inner.getChildCount() > 0) {
+                    inner.getChildAt(0).requestFocus();
+                    return;
+                }
+            }
+        }
     }
 
     @Override
@@ -200,11 +219,11 @@ public class MainActivity extends AppCompatActivity implements AdapterRow.Listen
             LinearLayoutManager lm = (LinearLayoutManager) binding.mainRecycler.getLayoutManager();
             if (lm != null && lm.findFirstCompletelyVisibleItemPosition() > 0) {
                 binding.mainRecycler.smoothScrollToPosition(0);
-                binding.tvMenu.requestFocus();
+                binding.mainRecycler.post(this::focusFirstApp);
                 return;
             }
         }
-        super.onBackPressed();
+        // Do NOT call super — the launcher must never exit via the Back button.
     }
 
     @Override
@@ -226,7 +245,8 @@ public class MainActivity extends AppCompatActivity implements AdapterRow.Listen
         if (dateClock != null) dateClock.start();
         updateNetworkIcon();
         if (wallpaper != null) wallpaper.onResume();
-        if (adapter != null) adapter.refreshRowHeights();
+        // Reload app list on every resume so hiding/showing changes take effect immediately.
+        if (adapter != null) loadApps();
     }
 
     @Override

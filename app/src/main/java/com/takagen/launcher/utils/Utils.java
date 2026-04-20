@@ -15,15 +15,18 @@ import androidx.core.content.ContextCompat;
 
 import com.takagen.launcher.App;
 import com.takagen.launcher.R;
+import com.takagen.launcher.bean.AppHideItem;
 import com.takagen.launcher.bean.AppInfo;
 import com.takagen.launcher.bean.FavApp;
 import com.takagen.launcher.db.FavAppDB;
 import com.takagen.launcher.db.dao.FavAppDao;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class Utils {
 
@@ -54,12 +57,14 @@ public class Utils {
     /**
      * Returns both rows: pinned apps (in saved order) followed by remaining installed apps
      * (alphabetical). TV apps have a banner resource; mobile apps do not.
+     * Hidden apps (stored in HiddenAppDao) are excluded.
      */
     @SuppressLint("QueryPermissionsNeeded")
     public static AppBuckets getApps() {
         PackageManager pm = App.get().getPackageManager();
         String selfPkg = App.get().getPackageName();
         FavAppDao dao = FavAppDB.get().favAppDao();
+        Set<String> hidden = new HashSet<>(FavAppDB.get().hiddenAppDao().getHiddenPacks());
 
         Map<String, AppInfo> tvAll = new LinkedHashMap<>();
         Map<String, AppInfo> mobileAll = new LinkedHashMap<>();
@@ -67,6 +72,7 @@ public class Utils {
         for (ApplicationInfo info : pm.getInstalledApplications(0)) {
             if (info.packageName.equals(selfPkg)) continue;
             if (pm.getLaunchIntentForPackage(info.packageName) == null) continue;
+            if (hidden.contains(info.packageName)) continue;      // respect hide list
 
             AppInfo item = AppInfo.get(info);
             if (info.banner != 0) tvAll.put(info.packageName, item);
@@ -74,6 +80,31 @@ public class Utils {
         }
 
         return new AppBuckets(orderBucket(dao, tvAll, true), orderBucket(dao, mobileAll, false));
+    }
+
+    /**
+     * Returns ALL launchable apps (including hidden ones) sorted alphabetically,
+     * each tagged with their current hidden status. Used by the Show/Hide screen.
+     */
+    @SuppressLint("QueryPermissionsNeeded")
+    public static List<AppHideItem> getAllAppsForHide() {
+        PackageManager pm = App.get().getPackageManager();
+        String selfPkg = App.get().getPackageName();
+        Set<String> hidden = new HashSet<>(FavAppDB.get().hiddenAppDao().getHiddenPacks());
+
+        List<AppInfo> all = new ArrayList<>();
+        for (ApplicationInfo info : pm.getInstalledApplications(0)) {
+            if (info.packageName.equals(selfPkg)) continue;
+            if (pm.getLaunchIntentForPackage(info.packageName) == null) continue;
+            all.add(AppInfo.get(info));
+        }
+        AppInfo.Sorter.sort(all);
+
+        List<AppHideItem> result = new ArrayList<>(all.size());
+        for (AppInfo app : all) {
+            result.add(new AppHideItem(app, hidden.contains(app.getPack())));
+        }
+        return result;
     }
 
     private static List<AppInfo> orderBucket(FavAppDao dao, Map<String, AppInfo> installed, boolean isTv) {

@@ -88,7 +88,7 @@ public class AdapterRow extends RecyclerView.Adapter<AdapterRow.Holder> {
         if (didMove && listener != null) {
             listener.onReorder(items, isTv);
         }
-        // Rebind the settled holder so bind() resets its visual state.
+        // Rebind the settled holder so bind() resets its visual state cleanly.
         if (settled != -1) notifyItemChanged(settled);
     }
 
@@ -103,7 +103,7 @@ public class AdapterRow extends RecyclerView.Adapter<AdapterRow.Holder> {
         }
 
         void bind(AppInfo item) {
-            // Reset any lingering move-mode or focus visuals from a previous bind.
+            // Reset any lingering move-mode or focus visual from a previous bind.
             View root = binding.getRoot();
             root.clearAnimation();
             root.setScaleX(1.0f);
@@ -145,16 +145,16 @@ public class AdapterRow extends RecyclerView.Adapter<AdapterRow.Holder> {
             int pos = getBindingAdapterPosition();
             if (hasFocus) {
                 if (inMoveMode() && pos != RecyclerView.NO_POSITION && pos != selectedPosition) {
-                    // Focus landed on a neighbour — swap selected item here.
+                    // Focus landed on a neighbour — swap selected item to this position.
                     Collections.swap(items, selectedPosition, pos);
                     final int newPos = pos;
                     notifyItemMoved(selectedPosition, pos);
                     selectedPosition = pos;
                     moved = true;
 
-                    // v is the NEIGHBOUR view (D in the example), not the selected item.
-                    // Do NOT apply move-visual to v here. Instead redirect focus back to the
-                    // selected item (now at newPos) so it stays visually "held" throughout.
+                    // v is the NEIGHBOUR's view, not the selected item.
+                    // Redirect focus to the selected item (now at newPos) so it stays
+                    // "held" throughout. onFocus(true) for newPos applies move visual.
                     RecyclerView rv = (RecyclerView) v.getParent();
                     if (rv != null) {
                         rv.post(() -> {
@@ -165,15 +165,17 @@ public class AdapterRow extends RecyclerView.Adapter<AdapterRow.Holder> {
                     }
 
                 } else if (inMoveMode() && pos == selectedPosition) {
-                    // Selected item (re-)gained focus — show move visual.
+                    // Selected item (re-)gained focus — maintain move visual.
                     applyMoveVisual(v);
                 } else {
                     applyFocusVisual(v, true);
                 }
+
             } else {
                 if (inMoveMode() && pos != RecyclerView.NO_POSITION && pos == selectedPosition) {
-                    // The selected item is temporarily losing focus during a swap transition.
-                    // Keep the move visual so it doesn't flicker back to unfocused state.
+                    // The selected item is temporarily losing focus during a swap transition
+                    // (focus is about to return via the post above). Keep move visual so it
+                    // does not flicker back to the unfocused/scaled-down appearance.
                     applyMoveVisual(v);
                 } else {
                     applyFocusVisual(v, false);

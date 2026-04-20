@@ -8,12 +8,14 @@ import androidx.room.RoomDatabase;
 
 import com.takagen.launcher.App;
 import com.takagen.launcher.bean.FavApp;
+import com.takagen.launcher.bean.HiddenApp;
 import com.takagen.launcher.db.dao.FavAppDao;
+import com.takagen.launcher.db.dao.HiddenAppDao;
 
-@Database(entities = {FavApp.class}, version = FavAppDB.VERSION)
+@Database(entities = {FavApp.class, HiddenApp.class}, version = FavAppDB.VERSION)
 public abstract class FavAppDB extends RoomDatabase {
 
-    public static final int VERSION = 33;
+    public static final int VERSION = 34;
     public static final String NAME = "fav";
 
     private static volatile FavAppDB instance;
@@ -31,5 +33,7 @@ public abstract class FavAppDB extends RoomDatabase {
     }
 
     public abstract FavAppDao favAppDao();
+
+    public abstract HiddenAppDao hiddenAppDao();
 
 }

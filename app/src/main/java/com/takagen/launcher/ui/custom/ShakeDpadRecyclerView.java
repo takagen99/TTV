@@ -51,10 +51,10 @@ public class ShakeDpadRecyclerView extends RecyclerView {
                 // Always block focus from leaving at the edge.
                 // Shake only when idle — fast hold-scroll should not trigger the animation.
                 if (getScrollState() == SCROLL_STATE_IDLE) {
-                    Animation anim = shake();
-                    if (anim != null) {
+                    if (shake == null && !isInEditMode()) shake = Utils.getAnim(R.anim.shake);
+                    if (shake != null) {
                         focused.clearAnimation();
-                        focused.startAnimation(anim);
+                        focused.startAnimation(shake);
                     }
                 }
                 return focused;
