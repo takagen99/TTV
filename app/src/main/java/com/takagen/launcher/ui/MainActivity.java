@@ -3,8 +3,6 @@ package com.takagen.launcher.ui;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -28,7 +26,6 @@ import com.takagen.launcher.bean.AppInfo;
 import com.takagen.launcher.bean.AppItem;
 import com.takagen.launcher.databinding.ActivityMainBinding;
 import com.takagen.launcher.db.FavAppDB;
-import com.takagen.launcher.ui.dialog.InputDialog;
 import com.takagen.launcher.utils.Clock;
 import com.takagen.launcher.utils.ResUtil;
 import com.takagen.launcher.utils.Utils;
@@ -77,22 +74,18 @@ public class MainActivity extends AppCompatActivity implements AdapterRow.Listen
         binding.mainRecycler.setHasFixedSize(false);
         binding.mainRecycler.setItemAnimator(null);
 
-        timeClock = Clock.create(binding.tvTime).format("HH:mm");
+        timeClock = Clock.create(binding.tvTime).format("h:mm a");
         dateClock = Clock.create(binding.tvDate).format("dd MMMM\nEEEE");
 
         binding.tvPosterTitle.setOnClickListener(this::onMenu);
         binding.tvRefresh.setOnClickListener(this::onMenu);
-        binding.tvInput.setOnClickListener(this::onMenu);
         binding.tvClear.setOnClickListener(this::onMenu);
-        binding.tvWifi.setOnClickListener(this::onMenu);
         binding.tvMenu.setOnClickListener(this::onMenu);
         binding.tvMenu.setOnLongClickListener(v -> {
             startActivity(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
                     Uri.fromParts("package", getPackageName(), null)));
             return true;
         });
-
-        updateNetworkIcon();
 
         wallpaper = new Wallpaper(this, binding.frameBG, binding.mainBG, binding.tvPosterTitle,
                 ResUtil.getAnim(R.anim.enter_anim));
@@ -159,10 +152,10 @@ public class MainActivity extends AppCompatActivity implements AdapterRow.Listen
     }
 
     private void onMenu(View v) {
-        if (v == binding.tvRefresh || v == binding.tvPosterTitle) {
+        if (v == binding.tvPosterTitle) {
             wallpaper.show();
-        } else if (v == binding.tvInput) {
-            InputDialog.create(this).show();
+        } else if (v == binding.tvRefresh) {
+            loadApps();
         } else if (v == binding.tvClear) {
             new MaterialAlertDialogBuilder(this, R.style.DarkDialogAlert)
                     .setTitle("Reset Custom Sort")
@@ -177,25 +170,10 @@ public class MainActivity extends AppCompatActivity implements AdapterRow.Listen
                         if (no != null) no.requestFocus();
                     });
         } else if (v == binding.tvMenu) {
-            SettingsActivity.start(this);
-        } else if (v == binding.tvWifi) {
-            startActivity(new Intent(Settings.ACTION_WIFI_SETTINGS));
+            // Show the Google-TV-style quick-settings overlay first; its
+            // "All settings" header then forwards to the full Settings page.
+            QuickSettingsActivity.start(this);
         }
-    }
-
-    private void updateNetworkIcon() {
-        ConnectivityManager cm = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
-        if (cm == null) return;
-        NetworkInfo net = cm.getActiveNetworkInfo();
-        if (net == null || !net.isConnectedOrConnecting()) return;
-        int icon;
-        switch (net.getType()) {
-            case ConnectivityManager.TYPE_WIFI: icon = R.drawable.ic_home_network_wifi; break;
-            case ConnectivityManager.TYPE_MOBILE: icon = R.drawable.ic_home_network_mobile; break;
-            case ConnectivityManager.TYPE_ETHERNET: icon = R.drawable.ic_home_network_lan; break;
-            default: icon = R.drawable.ic_home_network_no; break;
-        }
-        binding.tvWifi.setImageDrawable(Utils.getDrawable(icon));
     }
 
     @Override
@@ -252,7 +230,6 @@ public class MainActivity extends AppCompatActivity implements AdapterRow.Listen
         super.onResume();
         if (timeClock != null) timeClock.start();
         if (dateClock != null) dateClock.start();
-        updateNetworkIcon();
         if (wallpaper != null) wallpaper.onResume();
         // Reload app list on every resume so hiding/showing changes take effect immediately.
         if (adapter != null) loadApps();
@@ -271,6 +248,7 @@ public class MainActivity extends AppCompatActivity implements AdapterRow.Listen
         super.onDestroy();
         if (timeClock != null) timeClock.release();
         if (dateClock != null) dateClock.release();
+        if (wallpaper != null) wallpaper.onDestroy();
         executor.shutdownNow();
         binding = null;
     }

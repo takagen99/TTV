@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    One shortcut tile in the Quick-Settings grid.
+    Used via <include/> in activity_quick_settings.xml — the code sets
+    icon (id=tileIcon) and label (id=tileLabel) after binding.
+
+    Layout-width/height are set via GridLayout layout params in code so
+    each tile is an equal 2-column share with a fixed height.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="64dp"
+    android:layout_margin="4dp"
+    android:background="@drawable/bg_quick_tile"
+    android:clickable="true"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingStart="14dp"
+    android:paddingEnd="14dp">
+
+    <ImageView
+        android:id="@+id/tileIcon"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:contentDescription="@null"
+        android:src="@drawable/ic_home_setting"
+        app:tint="@color/white"
+        tools:ignore="UseAppTint" />
+
+    <TextView
+        android:id="@+id/tileLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textColor="@color/white"
+        android:textSize="13sp"
+        tools:text="App Settings" />
+</LinearLayout>

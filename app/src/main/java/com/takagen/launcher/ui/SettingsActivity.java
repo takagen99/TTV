@@ -1,42 +1,58 @@
 package com.takagen.launcher.ui;
 
 import android.app.Activity;
-import android.app.role.RoleManager;
+import android.app.ActivityManager;
+import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.content.pm.ResolveInfo;
 import android.content.res.Configuration;
-import android.net.Uri;
+import android.graphics.RenderEffect;
+import android.graphics.Shader;
 import android.os.Build;
 import android.os.Bundle;
-import android.provider.Settings;
-import android.view.KeyEvent;
+import android.os.Environment;
+import android.os.StatFs;
+import android.text.TextUtils;
+import android.util.DisplayMetrics;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
-import android.widget.Toast;
+import android.view.WindowManager;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.bumptech.glide.Glide;
 import com.takagen.launcher.BuildConfig;
 import com.takagen.launcher.R;
 import com.takagen.launcher.Setting;
 import com.takagen.launcher.databinding.ActivitySettingsBinding;
+import com.takagen.launcher.databinding.ItemAboutRowBinding;
 import com.takagen.launcher.utils.ResUtil;
 import com.takagen.launcher.utils.Utils;
+import com.takagen.launcher.utils.Wallpaper;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+
+/**
+ * Full settings page — reachable via "All settings" in {@link QuickSettingsActivity}.
+ *
+ * The left panel has two sections:
+ *   - General: TMDB key, wallpaper options, Show/Hide Apps.
+ *   - About:   read-only device / build information.
+ *
+ * Runtime toggles (Default TV Launcher, Auto Start on Boot, Row Heights) live in
+ * {@link QuickSettingsActivity}, not here.
+ */
 public class SettingsActivity extends AppCompatActivity {
-
-    private static final int REQ_DEFAULT_LAUNCHER = 100;
 
     private ActivitySettingsBinding binding;
 
     private String[] autoWall;
     private String[] wall;
     private String[] onOff;
-
-    // Which section is currently active in the left panel
-    private boolean isShortcutsSection = false;
 
     public static void start(Activity activity) {
         activity.startActivity(new Intent(activity, SettingsActivity.class));
@@ -48,8 +64,26 @@ public class SettingsActivity extends AppCompatActivity {
         binding = ActivitySettingsBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
         Utils.hideSystemUI(this);
+        applyWallpaperBackdrop();
         initView();
         initEvent();
+        populateAbout();
+    }
+
+    /**
+     * Reuse whatever TMDB backdrop is currently showing on the launcher so the
+     * Settings page doesn't feel visually disconnected. Applies a RenderEffect
+     * blur on API 31+ and falls back to the dim-only overlay on older devices.
+     */
+    private void applyWallpaperBackdrop() {
+        String url = Wallpaper.getCurrentUrl();
+        if (!TextUtils.isEmpty(url)) {
+            Glide.with(this).load(url).into(binding.wallpaperBG);
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            binding.wallpaperBG.setRenderEffect(
+                    RenderEffect.createBlurEffect(40f, 40f, Shader.TileMode.CLAMP));
+        }
     }
 
     private void initView() {
@@ -57,11 +91,7 @@ public class SettingsActivity extends AppCompatActivity {
         binding.wallText.setText((wall = ResUtil.getStringArray(R.array.select_wall))[Setting.getWall()]);
         binding.wallAutoText.setText((autoWall = onOff)[Setting.getAutoWall()]);
         binding.tmdbKeyText.setText(Setting.getTMDBKey());
-        binding.tvRowHeightText.setText(Setting.getTvRowDp() + "dp");
-        binding.mobileRowHeightText.setText(Setting.getMobileRowDp() + "dp");
         binding.appVersion.setText("Version " + BuildConfig.VERSION_CODE + " - " + BuildConfig.VERSION_NAME);
-        updateDefaultLauncherStatus();
-        updateAutoStartStatus();
 
         // Start on General section, focus first item in right panel
         showSection(false);
@@ -73,27 +103,20 @@ public class SettingsActivity extends AppCompatActivity {
         binding.sectionMain.setOnFocusChangeListener((v, hasFocus) -> {
             if (hasFocus) showSection(false);
         });
-        binding.sectionShortcuts.setOnFocusChangeListener((v, hasFocus) -> {
+        binding.sectionAbout.setOnFocusChangeListener((v, hasFocus) -> {
             if (hasFocus) showSection(true);
         });
         binding.sectionMain.setOnClickListener(v -> {
             showSection(false);
             binding.tmdbKey.requestFocus();
         });
-        binding.sectionShortcuts.setOnClickListener(v -> {
-            showSection(true);
-            binding.systemAccessibiliy.requestFocus();
-        });
+        binding.sectionAbout.setOnClickListener(v -> showSection(true));
 
         // General panel
         binding.wall.setOnClickListener(this::setWall);
         binding.wallAuto.setOnClickListener(this::setAutoWall);
         binding.tmdbKey.setOnClickListener(v -> binding.tmdbKeyText.requestFocus());
-        binding.defaultLauncher.setOnClickListener(this::requestDefaultLauncher);
-        binding.autoStart.setOnClickListener(this::toggleAutoStart);
         binding.showHideApps.setOnClickListener(v -> AppsHideActivity.start(this));
-        binding.tvRowHeight.setOnClickListener(this::setTvRowHeight);
-        binding.mobileRowHeight.setOnClickListener(this::setMobileRowHeight);
 
         binding.tmdbKeyText.setOnEditorActionListener((v, actionId, event) -> {
             if (actionId == EditorInfo.IME_ACTION_DONE) {
@@ -102,19 +125,13 @@ public class SettingsActivity extends AppCompatActivity {
             }
             return false;
         });
-
-        // Shortcuts panel
-        binding.appSetting.setOnClickListener(this::goAppSetting);
-        binding.systemSetting.setOnClickListener(this::goSystemSetting);
-        binding.systemAccessibiliy.setOnClickListener(this::goSystemAccess);
     }
 
     // ── Section switching ──────────────────────────────────────────────────────
 
-    private void showSection(boolean shortcuts) {
-        isShortcutsSection = shortcuts;
-        binding.panelMain.setVisibility(shortcuts ? View.GONE : View.VISIBLE);
-        binding.panelShortcuts.setVisibility(shortcuts ? View.VISIBLE : View.GONE);
+    private void showSection(boolean about) {
+        binding.panelMain.setVisibility(about ? View.GONE : View.VISIBLE);
+        binding.panelAbout.setVisibility(about ? View.VISIBLE : View.GONE);
     }
 
     // ── General settings handlers ──────────────────────────────────────────────
@@ -131,141 +148,157 @@ public class SettingsActivity extends AppCompatActivity {
         binding.wallAutoText.setText(autoWall[index]);
     }
 
-    private void setTvRowHeight(View v) {
-        int index = (Setting.getTvRowIndex() + 1) % Setting.TV_ROW_HEIGHTS.length;
-        Setting.putTvRowIndex(index);
-        binding.tvRowHeightText.setText(Setting.TV_ROW_HEIGHTS[index] + "dp");
+    // ── About panel ───────────────────────────────────────────────────────────
+
+    private void populateAbout() {
+        bindAbout(binding.aboutAndroidVersion,  "Android Version",
+                Build.VERSION.RELEASE + "  (API " + Build.VERSION.SDK_INT + ")");
+        bindAbout(binding.aboutBuildNumber,     "Build Number",    Build.DISPLAY);
+        bindAbout(binding.aboutBuildDate,       "Build Date",      formatBuildTime(Build.TIME));
+        bindAbout(binding.aboutSecurityPatch,   "Security Patch",  safeSecurityPatch());
+        bindAbout(binding.aboutKernel,          "Kernel Version",  safeProp("os.version"));
+
+        bindAbout(binding.aboutBrand,           "Brand",           Build.BRAND);
+        bindAbout(binding.aboutManufacturer,    "Manufacturer",    Build.MANUFACTURER);
+        bindAbout(binding.aboutModel,           "Model",           Build.MODEL);
+        bindAbout(binding.aboutDevice,          "Device",          Build.DEVICE);
+        bindAbout(binding.aboutProduct,         "Product",         Build.PRODUCT);
+        bindAbout(binding.aboutBoard,           "Board",           Build.BOARD);
+        bindAbout(binding.aboutHardware,        "Hardware",        Build.HARDWARE);
+
+        bindAbout(binding.aboutProcessor,       "Processor",       readCpuModel());
+        bindAbout(binding.aboutCpuArch,         "CPU Architecture", safeProp("os.arch"));
+        bindAbout(binding.aboutAbis,            "Supported ABIs",  joinAbis());
+
+        bindAbout(binding.aboutResolution,      "Resolution",      formatResolution());
+        bindAbout(binding.aboutDensity,         "Density",         formatDensity());
+        bindAbout(binding.aboutRefresh,         "Refresh Rate",    formatRefresh());
+
+        bindAbout(binding.aboutRam,             "RAM",             formatRam());
+        bindAbout(binding.aboutStorage,         "Internal Storage", formatStorage());
+        bindAbout(binding.aboutBootloader,      "Bootloader",      Build.BOOTLOADER);
+
+        bindAbout(binding.aboutAppVersion,      "App Version",
+                BuildConfig.VERSION_NAME + " (" + BuildConfig.VERSION_CODE + ")");
     }
 
-    private void setMobileRowHeight(View v) {
-        int index = (Setting.getMobileRowIndex() + 1) % Setting.MOB_ROW_HEIGHTS.length;
-        Setting.putMobileRowIndex(index);
-        binding.mobileRowHeightText.setText(Setting.MOB_ROW_HEIGHTS[index] + "dp");
+    private void bindAbout(ItemAboutRowBinding row, String label, String value) {
+        row.rowLabel.setText(label);
+        row.rowValue.setText(value == null || value.isEmpty() ? "—" : value);
     }
 
-    // ── Default TV Launcher ───────────────────────────────────────────────────
+    // ── About value helpers ──────────────────────────────────────────────────
 
-    private void requestDefaultLauncher(View v) {
-        if (isDefaultLauncher()) {
-            // Already default — offer to clear it by opening the system home-app picker.
-            // Android provides no programmatic API to release the HOME role, so we send
-            // the user to the system UI where they can choose a different launcher.
-            openHomePicker();
-        } else {
-            setAsDefaultLauncher();
-        }
-    }
-
-    private void setAsDefaultLauncher() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            RoleManager rm = getSystemService(RoleManager.class);
-            if (rm != null && rm.isRoleAvailable(RoleManager.ROLE_HOME)) {
-                startActivityForResult(
-                        rm.createRequestRoleIntent(RoleManager.ROLE_HOME),
-                        REQ_DEFAULT_LAUNCHER);
-                return;
-            }
-        }
-        // Fallback for older APIs: trigger the system home-app picker
-        openHomePicker();
-    }
-
-    /**
-     * Opens the system UI that lets the user choose or change the default home app.
-     * This is the only way to release the HOME role — Android has no programmatic
-     * "release role" API for HOME.
-     */
-    private void openHomePicker() {
-        // Try the dedicated home-settings screen first (works on most Android TV builds)
+    private String formatBuildTime(long time) {
         try {
-            Intent homeSettings = new Intent("android.settings.HOME_SETTINGS");
-            homeSettings.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity(homeSettings);
-            return;
-        } catch (Exception ignored) { }
+            return new SimpleDateFormat("d MMM yyyy, HH:mm", Locale.getDefault())
+                    .format(new Date(time));
+        } catch (Exception e) {
+            return String.valueOf(time);
+        }
+    }
 
-        // Fallback: clear the default for this package then fire a HOME intent,
-        // which forces the resolver to appear again.
+    private String safeSecurityPatch() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) return Build.VERSION.SECURITY_PATCH;
+        return "—";
+    }
+
+    private String safeProp(String key) {
         try {
-            getPackageManager().clearPackagePreferredActivities(getPackageName());
-        } catch (Exception ignored) { }
-
-        Intent home = new Intent(Intent.ACTION_MAIN);
-        home.addCategory(Intent.CATEGORY_HOME);
-        home.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        startActivity(home);
-    }
-
-    private boolean isDefaultLauncher() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            RoleManager rm = getSystemService(RoleManager.class);
-            if (rm != null) return rm.isRoleHeld(RoleManager.ROLE_HOME);
-        }
-        Intent intent = new Intent(Intent.ACTION_MAIN);
-        intent.addCategory(Intent.CATEGORY_HOME);
-        ResolveInfo ri = getPackageManager().resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY);
-        return ri != null && ri.activityInfo.packageName.equals(getPackageName());
-    }
-
-    private void updateDefaultLauncherStatus() {
-        if (isDefaultLauncher()) {
-            binding.defaultLauncherText.setText("Active — tap to change");
-        } else {
-            binding.defaultLauncherText.setText("Set as Default");
+            String v = System.getProperty(key);
+            return v == null ? "—" : v;
+        } catch (Exception e) {
+            return "—";
         }
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == REQ_DEFAULT_LAUNCHER) {
-            updateDefaultLauncherStatus();
-            if (isDefaultLauncher()) {
-                Toast.makeText(this,
-                        "TTV is now the default launcher! Enable Accessibility for full Home-key control.",
-                        Toast.LENGTH_LONG).show();
+    private String joinAbis() {
+        String[] abis = Build.SUPPORTED_ABIS;
+        if (abis == null || abis.length == 0) return "—";
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < abis.length; i++) {
+            if (i > 0) sb.append(", ");
+            sb.append(abis[i]);
+        }
+        return sb.toString();
+    }
+
+    /** Reads /proc/cpuinfo to get a friendly processor model name when available. */
+    private String readCpuModel() {
+        try (BufferedReader br = new BufferedReader(new FileReader("/proc/cpuinfo"))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                // "Hardware", "model name" or "Processor" lines all carry useful info on different SoCs.
+                String lower = line.toLowerCase(Locale.ROOT);
+                if (lower.startsWith("hardware")
+                        || lower.startsWith("model name")
+                        || lower.startsWith("processor")) {
+                    int colon = line.indexOf(':');
+                    if (colon > -1 && colon < line.length() - 1) {
+                        String v = line.substring(colon + 1).trim();
+                        if (!v.isEmpty() && !v.matches("\\d+")) return v;
+                    }
+                }
             }
-        }
+        } catch (Exception ignored) { }
+        return Build.HARDWARE;
     }
 
-    // ── Auto-start on Boot ────────────────────────────────────────────────────
-
-    private void toggleAutoStart(View v) {
-        boolean current = Setting.getAutoStart();
-        Setting.putAutoStart(!current);
-        updateAutoStartStatus();
-        Toast.makeText(this,
-                Setting.getAutoStart() ? "TTV will launch automatically on boot" : "Auto-start disabled",
-                Toast.LENGTH_SHORT).show();
+    private String formatResolution() {
+        DisplayMetrics dm = getResources().getDisplayMetrics();
+        return dm.widthPixels + " × " + dm.heightPixels + " px";
     }
 
-    private void updateAutoStartStatus() {
-        binding.autoStartText.setText(Setting.getAutoStart() ? "On" : "Off");
+    private String formatDensity() {
+        DisplayMetrics dm = getResources().getDisplayMetrics();
+        return dm.densityDpi + " dpi  (×" + dm.density + ")";
     }
 
-    // ── Shortcut handlers ─────────────────────────────────────────────────────
-
-    private void goAppSetting(View v) {
-        startActivity(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                Uri.fromParts("package", getPackageName(), null)));
+    private String formatRefresh() {
+        try {
+            WindowManager wm = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
+            if (wm != null && wm.getDefaultDisplay() != null) {
+                return String.format(Locale.getDefault(),
+                        "%.1f Hz", wm.getDefaultDisplay().getRefreshRate());
+            }
+        } catch (Exception ignored) { }
+        return "—";
     }
 
-    private void goSystemSetting(View v) {
-        startActivity(new Intent(Settings.ACTION_SETTINGS));
+    private String formatRam() {
+        try {
+            ActivityManager am = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+            if (am != null) {
+                ActivityManager.MemoryInfo mi = new ActivityManager.MemoryInfo();
+                am.getMemoryInfo(mi);
+                return humanBytes(mi.availMem) + " free / " + humanBytes(mi.totalMem) + " total";
+            }
+        } catch (Exception ignored) { }
+        return "—";
     }
 
-    private void goSystemAccess(View v) {
-        startActivity(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS));
+    private String formatStorage() {
+        try {
+            StatFs fs = new StatFs(Environment.getDataDirectory().getPath());
+            long block = fs.getBlockSizeLong();
+            long free  = fs.getAvailableBlocksLong() * block;
+            long total = fs.getBlockCountLong()    * block;
+            return humanBytes(free) + " free / " + humanBytes(total) + " total";
+        } catch (Exception ignored) { }
+        return "—";
+    }
+
+    private String humanBytes(long bytes) {
+        if (bytes <= 0) return "0 B";
+        final String[] units = {"B", "KB", "MB", "GB", "TB"};
+        int idx = 0;
+        double v = bytes;
+        while (v >= 1024 && idx < units.length - 1) { v /= 1024; idx++; }
+        return String.format(Locale.getDefault(),
+                idx == 0 ? "%.0f %s" : "%.2f %s", v, units[idx]);
     }
 
     // ── Lifecycle ─────────────────────────────────────────────────────────────
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        updateDefaultLauncherStatus();
-        updateAutoStartStatus();
-    }
 
     @Override
     public void onConfigurationChanged(@NonNull Configuration newConfig) {

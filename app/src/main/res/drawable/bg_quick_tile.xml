@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Rounded tile used for the 8 quick-settings shortcut buttons.
+    Shows a subtle dark fill when unfocused and the accent colour on focus,
+    mirroring the Google TV quick-settings panel.
+-->
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="@color/accent_50">
+    <item>
+        <selector>
+            <item android:state_focused="true" android:state_pressed="true">
+                <shape>
+                    <corners android:radius="18dp" />
+                    <solid android:color="@color/accent_60" />
+                </shape>
+            </item>
+            <item android:state_focused="true">
+                <shape>
+                    <corners android:radius="18dp" />
+                    <solid android:color="@color/accent" />
+                </shape>
+            </item>
+            <item android:state_pressed="true">
+                <shape>
+                    <corners android:radius="18dp" />
+                    <solid android:color="@color/accent_40" />
+                </shape>
+            </item>
+            <item>
+                <shape>
+                    <corners android:radius="18dp" />
+                    <solid android:color="#33FFFFFF" />
+                </shape>
+            </item>
+        </selector>
+    </item>
+</ripple>

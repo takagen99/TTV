@@ -49,4 +49,21 @@
         <item name="android:windowExitAnimation">@android:anim/slide_out_right</item>
     </style>
 
+    <!-- Translucent overlay theme used by QuickSettingsActivity so the
+         main launcher stays visible (dimmed) behind the right-side panel. -->
+    <style name="QuickSettingsTheme" parent="BaseTheme">
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowAnimationStyle">@style/QuickSettingsAnimation</item>
+        <item name="android:windowFullscreen">true</item>
+    </style>
+
+    <!-- Slide-in from the right / slide-out to the right for QuickSettingsActivity. -->
+    <style name="QuickSettingsAnimation">
+        <item name="android:activityOpenEnterAnimation">@anim/quick_settings_enter</item>
+        <item name="android:activityCloseExitAnimation">@anim/quick_settings_exit</item>
+        <item name="android:windowEnterAnimation">@anim/quick_settings_enter</item>
+        <item name="android:windowExitAnimation">@anim/quick_settings_exit</item>
+    </style>
+
 </resources>

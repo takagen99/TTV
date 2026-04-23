@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    One row in the About panel: label on the left, value on the right.
+    The activity populates both TextViews after inflation via the nested
+    binding (rowLabel / rowValue).
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:paddingStart="12dp"
+    android:paddingTop="6dp"
+    android:paddingEnd="12dp"
+    android:paddingBottom="6dp">
+
+    <TextView
+        android:id="@+id/rowLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="16dp"
+        android:minWidth="170dp"
+        android:textColor="@color/white"
+        android:textSize="15sp"
+        tools:text="Android Version" />
+
+    <TextView
+        android:id="@+id/rowValue"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="end"
+        android:textColor="@color/white_50"
+        android:textSize="15sp"
+        tools:text="13 (API 33)" />
+</LinearLayout>

@@ -53,30 +53,7 @@
                 android:textSize="12sp"
                 tools:text="poster title" />
 
-            <ImageView
-                android:id="@+id/tvRefresh"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
-                android:layout_marginStart="8dp"
-                android:background="@drawable/selector_home"
-                android:clickable="true"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:padding="7dp"
-                android:src="@drawable/ic_home_refresh"
-                android:visibility="gone" />
-
-            <ImageView
-                android:id="@+id/tvInput"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
-                android:layout_marginStart="8dp"
-                android:background="@drawable/selector_home"
-                android:clickable="true"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:padding="12dp"
-                android:src="@drawable/ic_home_input" />
+            <!-- Input and Wi-Fi shortcuts moved into QuickSettingsActivity -->
 
             <ImageView
                 android:id="@+id/tvClear"
@@ -90,17 +67,19 @@
                 android:padding="5dp"
                 android:src="@drawable/ic_home_clear" />
 
+            <!-- Refresh the app list (rescans installed apps + reapplies saved order). -->
             <ImageView
-                android:id="@+id/tvWifi"
+                android:id="@+id/tvRefresh"
                 android:layout_width="50dp"
                 android:layout_height="50dp"
                 android:layout_marginStart="8dp"
                 android:background="@drawable/selector_home"
                 android:clickable="true"
+                android:contentDescription="Refresh apps"
                 android:focusable="true"
                 android:focusableInTouchMode="true"
-                android:padding="10dp"
-                android:src="@drawable/ic_home_network_no" />
+                android:padding="7dp"
+                android:src="@drawable/ic_home_refresh" />
 
             <ImageView
                 android:id="@+id/tvMenu"
