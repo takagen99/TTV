@@ -21,6 +21,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.Glide;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.takagen.launcher.BuildConfig;
 import com.takagen.launcher.R;
 import com.takagen.launcher.Setting;
@@ -88,7 +89,8 @@ public class SettingsActivity extends AppCompatActivity {
 
     private void initView() {
         onOff = ResUtil.getStringArray(R.array.on_off);
-        binding.wallText.setText((wall = ResUtil.getStringArray(R.array.select_wall))[Setting.getWall()]);
+        wall = ResUtil.getStringArray(R.array.select_wall);
+        binding.wallText.setText(formatWallMask(Setting.getWallMask()));
         binding.wallAutoText.setText((autoWall = onOff)[Setting.getAutoWall()]);
         binding.tmdbKeyText.setText(Setting.getTMDBKey());
         binding.appVersion.setText("Version " + BuildConfig.VERSION_CODE + " - " + BuildConfig.VERSION_NAME);
@@ -136,10 +138,45 @@ public class SettingsActivity extends AppCompatActivity {
 
     // ── General settings handlers ──────────────────────────────────────────────
 
+    /**
+     * Opens a multi-choice dialog so the user can enable any combination of
+     * wallpaper categories. The Wallpaper class picks up the new mask on the
+     * next onResume and refetches only if the selection actually changed.
+     */
     private void setWall(View v) {
-        int index = Setting.getWall();
-        Setting.putWall(index = index == wall.length - 1 ? 0 : ++index);
-        binding.wallText.setText(wall[index]);
+        final int initialMask = Setting.getWallMask();
+        final boolean[] checked = new boolean[wall.length];
+        for (int i = 0; i < wall.length; i++) {
+            checked[i] = (initialMask & (1 << i)) != 0;
+        }
+        new MaterialAlertDialogBuilder(this, R.style.DarkDialogAlert)
+                .setTitle("Wallpaper Categories")
+                .setMultiChoiceItems(wall, checked,
+                        (d, which, isChecked) -> checked[which] = isChecked)
+                .setPositiveButton("OK", (d, w) -> {
+                    int newMask = 0;
+                    for (int i = 0; i < checked.length; i++) {
+                        if (checked[i]) newMask |= (1 << i);
+                    }
+                    // Fall back to Anime if the user unchecked everything, otherwise
+                    // the launcher would have no backdrops to show.
+                    if (newMask == 0) newMask = Setting.WALL_ANIME;
+                    Setting.putWallMask(newMask);
+                    binding.wallText.setText(formatWallMask(newMask));
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private String formatWallMask(int mask) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < wall.length; i++) {
+            if ((mask & (1 << i)) != 0) {
+                if (sb.length() > 0) sb.append(", ");
+                sb.append(wall[i]);
+            }
+        }
+        return sb.length() == 0 ? "—" : sb.toString();
     }
 
     private void setAutoWall(View v) {

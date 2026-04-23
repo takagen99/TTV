@@ -19,13 +19,36 @@ public class Setting {
         Prefers.put("TMDBkey", TMDBkey);
     }
 
-    // 2. Wallpaper Type
-    public static int getWall() {
-        return Prefers.getInt("wall", 1);
+    // 2. Wallpaper categories — bitmask (see WALL_* bit indices below)
+    //    Defaults to just "Anime" to match the legacy single-category behaviour.
+    public static final int WALL_TRENDING  = 1 << 0; // select_wall[0]
+    public static final int WALL_ANIME     = 1 << 1; // select_wall[1]
+    public static final int WALL_MOVIES    = 1 << 2; // select_wall[2]
+    public static final int WALL_TV_SERIES = 1 << 3; // select_wall[3]
+    public static final int WALL_ALL_MASK  =
+            WALL_TRENDING | WALL_ANIME | WALL_MOVIES | WALL_TV_SERIES;
+    private static final int WALL_DEFAULT_MASK = WALL_ANIME;
+
+    /**
+     * Returns the enabled wallpaper categories as a bitmask. Migrates the legacy
+     * single-int "wall" pref (0..3 index) on first read. Always returns a non-zero,
+     * sanitised mask — if the user somehow clears everything we fall back to the
+     * default so the launcher still has artwork.
+     */
+    public static int getWallMask() {
+        int stored = Prefers.getInt("wallMask", -1);
+        if (stored == -1) {
+            int legacy = Prefers.getInt("wall", 1);
+            int mask = (legacy >= 0 && legacy < 4) ? (1 << legacy) : WALL_DEFAULT_MASK;
+            Prefers.put("wallMask", mask);
+            return mask;
+        }
+        int sanitized = stored & WALL_ALL_MASK;
+        return sanitized == 0 ? WALL_DEFAULT_MASK : sanitized;
     }
 
-    public static void putWall(int wall) {
-        Prefers.put("wall", wall);
+    public static void putWallMask(int mask) {
+        Prefers.put("wallMask", mask & WALL_ALL_MASK);
     }
 
     // 3. Auto-Cycle Wallpaper

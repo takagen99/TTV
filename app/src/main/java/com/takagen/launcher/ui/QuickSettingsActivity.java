@@ -100,7 +100,7 @@ public class QuickSettingsActivity extends AppCompatActivity {
         bindTile(binding.tileComposite, R.drawable.input_composite, "Composite", v -> switchTvInput("Composite"));
 
         // Start with focus on the first tile so the overlay is D-pad navigable immediately.
-        View first = binding.tileAppSettings.getRoot();
+        View first = binding.qsAllSettings;
         first.post(first::requestFocus);
     }
 

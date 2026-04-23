@@ -47,7 +47,7 @@ public class Wallpaper {
     // TMDB
     private static final String TMDB_BASE      = "https://api.themoviedb.org/3";
     private static final String IMAGE_BASE     = "https://image.tmdb.org/t/p/original";
-    private static final int    PAGES_PER_TYPE = 3;
+    private static final int    PAGES_PER_TYPE = 2; // lower than single-category era to cap fan-out
     private static final int    CONNECT_TIMEOUT_MS = 8_000;
     private static final int    READ_TIMEOUT_MS    = 10_000;
 
@@ -55,9 +55,9 @@ public class Wallpaper {
     private static final long   CYCLE_MS       = 30_000L;
 
     // ── Cross-activity shared state ──
-    // Cached items keyed by wallpaper type, so switching activities doesn't refetch.
+    // Cached items keyed by wallpaper mask, so switching activities doesn't refetch.
     private static final List<Item> ITEMS = Collections.synchronizedList(new ArrayList<>());
-    private static volatile int     sCachedType = -1;
+    private static volatile int     sCachedMask = 0;
     private static volatile String  sCurrentUrl;
 
     /** URL of the backdrop currently displayed on the launcher, or null if none yet. */
@@ -74,7 +74,7 @@ public class Wallpaper {
     private final Animation enterAnim;
 
     private ExecutorService executor;
-    private int wallType = -1;
+    private int wallMask = 0;
 
     private final Runnable cycle = new Runnable() {
         @Override public void run() {
@@ -97,23 +97,29 @@ public class Wallpaper {
     /** Kick off fetch if TMDB key is configured. */
     public void load() {
         if (TextUtils.isEmpty(Setting.getTMDBKey())) return;
-        wallType = Setting.getWall();
+        wallMask = Setting.getWallMask();
 
-        // Already have items for this type — render immediately, skip the network.
-        if (sCachedType == wallType && !ITEMS.isEmpty()) {
+        // Already have items for this selection — render immediately, skip the network.
+        if (sCachedMask == wallMask && !ITEMS.isEmpty()) {
             show();
             return;
         }
 
         ITEMS.clear();
-        sCachedType = wallType;
+        sCachedMask = wallMask;
 
         if (executor != null) executor.shutdownNow();
         executor = Executors.newSingleThreadExecutor();
-        final int type = wallType;
+        final int mask = wallMask;
         executor.execute(() -> {
-            for (int page = 1; page <= PAGES_PER_TYPE && !Thread.currentThread().isInterrupted(); page++) {
-                fetchPage(type, page);
+            // Fetch each enabled category in turn. fetchPage() dedups by backdrop
+            // path so overlaps between e.g. Trending and Movies don't pile up.
+            for (int bit = 0; bit < 4 && !Thread.currentThread().isInterrupted(); bit++) {
+                if ((mask & (1 << bit)) == 0) continue;
+                for (int page = 1; page <= PAGES_PER_TYPE
+                        && !Thread.currentThread().isInterrupted(); page++) {
+                    fetchPage(bit, page);
+                }
             }
             App.post(() -> {
                 if (!activity.isFinishing() && !activity.isDestroyed()) show();
@@ -121,9 +127,9 @@ public class Wallpaper {
         });
     }
 
-    /** Call in onResume — refetches if wallpaper type changed, (re)starts auto-cycle. */
+    /** Call in onResume — refetches if selection changed, (re)starts auto-cycle. */
     public void onResume() {
-        if (wallType != Setting.getWall()) {
+        if (wallMask != Setting.getWallMask()) {
             load();
         }
         App.removeCallbacks(cycle);
@@ -188,7 +194,7 @@ public class Wallpaper {
                 List<Item> pageItems = new ArrayList<>(results.size());
                 for (JsonElement el : results) {
                     Item item = parseItem(el.getAsJsonObject());
-                    if (item != null) pageItems.add(item);
+                    if (item != null && !containsPath(item.path)) pageItems.add(item);
                 }
                 ITEMS.addAll(pageItems);
             }
@@ -197,6 +203,13 @@ public class Wallpaper {
         } finally {
             if (conn != null) conn.disconnect();
         }
+    }
+
+    private static boolean containsPath(String path) {
+        synchronized (ITEMS) {
+            for (Item i : ITEMS) if (i.path.equals(path)) return true;
+        }
+        return false;
     }
 
     @Nullable
