@@ -1,12 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    isAccessibilityTool="true" declares this service is NOT an assistive tool
+    for users with disabilities. Required on Android 13+ (API 33+) — including
+    Google TV — so that sideloaded APKs are not silently blocked by the
+    "Restricted Settings" feature (the cause of "toggle turns itself off").
+-->
 <accessibility-service
-  xmlns:android="http://schemas.android.com/apk/res/android"
-  android:accessibilityEventTypes="typeContextClicked|typeViewClicked"
-  android:packageNames="com.takagen.launcher"
-  android:accessibilityFlags="flagRequestFilterKeyEvents"
-  android:accessibilityFeedbackType="feedbackAllMask"
-  android:notificationTimeout="50"
-  android:canRetrieveWindowContent="true"
-  android:settingsActivity=""
-  android:canRequestFilterKeyEvents="true"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:accessibilityEventTypes="typeWindowStateChanged|typeWindowContentChanged"
+    android:accessibilityFlags="flagRequestFilterKeyEvents|flagDefault"
+    android:accessibilityFeedbackType="feedbackGeneric"
+    android:notificationTimeout="100"
+    android:canRequestFilterKeyEvents="true"
+    android:isAccessibilityTool="true"
+    android:summary="@string/accessibility_service_summary"
+    android:description="@string/accessibility_service_description"
 />

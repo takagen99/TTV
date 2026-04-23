@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">TTV</string>
+    <string name="accessibility_service_summary">Keeps TTV as the active launcher</string>
+    <string name="accessibility_service_description">Lets TTV Launcher intercept the Home button so pressing Home always returns to TTV instead of the built-in Google TV launcher. This is required on Google TV, where the system launcher cannot be replaced through the normal default-launcher setting.</string>
 
     <string-array name="on_off">
         <item>On</item>

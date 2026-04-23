@@ -33,6 +33,7 @@ public class SettingsActivity extends AppCompatActivity {
 
     private String[] autoWall;
     private String[] wall;
+    private String[] onOff;
 
     // Which section is currently active in the left panel
     private boolean isShortcutsSection = false;
@@ -52,13 +53,15 @@ public class SettingsActivity extends AppCompatActivity {
     }
 
     private void initView() {
+        onOff = ResUtil.getStringArray(R.array.on_off);
         binding.wallText.setText((wall = ResUtil.getStringArray(R.array.select_wall))[Setting.getWall()]);
-        binding.wallAutoText.setText((autoWall = ResUtil.getStringArray(R.array.on_off))[Setting.getAutoWall()]);
+        binding.wallAutoText.setText((autoWall = onOff)[Setting.getAutoWall()]);
         binding.tmdbKeyText.setText(Setting.getTMDBKey());
         binding.tvRowHeightText.setText(Setting.getTvRowDp() + "dp");
         binding.mobileRowHeightText.setText(Setting.getMobileRowDp() + "dp");
         binding.appVersion.setText("Version " + BuildConfig.VERSION_CODE + " - " + BuildConfig.VERSION_NAME);
         updateDefaultLauncherStatus();
+        updateAutoStartStatus();
 
         // Start on General section, focus first item in right panel
         showSection(false);
@@ -87,6 +90,7 @@ public class SettingsActivity extends AppCompatActivity {
         binding.wallAuto.setOnClickListener(this::setAutoWall);
         binding.tmdbKey.setOnClickListener(v -> binding.tmdbKeyText.requestFocus());
         binding.defaultLauncher.setOnClickListener(this::requestDefaultLauncher);
+        binding.autoStart.setOnClickListener(this::toggleAutoStart);
         binding.showHideApps.setOnClickListener(v -> AppsHideActivity.start(this));
         binding.tvRowHeight.setOnClickListener(this::setTvRowHeight);
         binding.mobileRowHeight.setOnClickListener(this::setMobileRowHeight);
@@ -143,9 +147,16 @@ public class SettingsActivity extends AppCompatActivity {
 
     private void requestDefaultLauncher(View v) {
         if (isDefaultLauncher()) {
-            Toast.makeText(this, "Already the default TV launcher", Toast.LENGTH_SHORT).show();
-            return;
+            // Already default — offer to clear it by opening the system home-app picker.
+            // Android provides no programmatic API to release the HOME role, so we send
+            // the user to the system UI where they can choose a different launcher.
+            openHomePicker();
+        } else {
+            setAsDefaultLauncher();
         }
+    }
+
+    private void setAsDefaultLauncher() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             RoleManager rm = getSystemService(RoleManager.class);
             if (rm != null && rm.isRoleAvailable(RoleManager.ROLE_HOME)) {
@@ -155,11 +166,34 @@ public class SettingsActivity extends AppCompatActivity {
                 return;
             }
         }
-        // Fallback: open the home-app picker via the system home intent
-        Intent intent = new Intent(Intent.ACTION_MAIN);
-        intent.addCategory(Intent.CATEGORY_HOME);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        startActivity(intent);
+        // Fallback for older APIs: trigger the system home-app picker
+        openHomePicker();
+    }
+
+    /**
+     * Opens the system UI that lets the user choose or change the default home app.
+     * This is the only way to release the HOME role — Android has no programmatic
+     * "release role" API for HOME.
+     */
+    private void openHomePicker() {
+        // Try the dedicated home-settings screen first (works on most Android TV builds)
+        try {
+            Intent homeSettings = new Intent("android.settings.HOME_SETTINGS");
+            homeSettings.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(homeSettings);
+            return;
+        } catch (Exception ignored) { }
+
+        // Fallback: clear the default for this package then fire a HOME intent,
+        // which forces the resolver to appear again.
+        try {
+            getPackageManager().clearPackagePreferredActivities(getPackageName());
+        } catch (Exception ignored) { }
+
+        Intent home = new Intent(Intent.ACTION_MAIN);
+        home.addCategory(Intent.CATEGORY_HOME);
+        home.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(home);
     }
 
     private boolean isDefaultLauncher() {
@@ -174,7 +208,11 @@ public class SettingsActivity extends AppCompatActivity {
     }
 
     private void updateDefaultLauncherStatus() {
-        binding.defaultLauncherText.setText(isDefaultLauncher() ? "Active" : "Set as Default");
+        if (isDefaultLauncher()) {
+            binding.defaultLauncherText.setText("Active — tap to change");
+        } else {
+            binding.defaultLauncherText.setText("Set as Default");
+        }
     }
 
     @Override
@@ -182,7 +220,27 @@ public class SettingsActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQ_DEFAULT_LAUNCHER) {
             updateDefaultLauncherStatus();
+            if (isDefaultLauncher()) {
+                Toast.makeText(this,
+                        "TTV is now the default launcher! Enable Accessibility for full Home-key control.",
+                        Toast.LENGTH_LONG).show();
+            }
         }
+    }
+
+    // ── Auto-start on Boot ────────────────────────────────────────────────────
+
+    private void toggleAutoStart(View v) {
+        boolean current = Setting.getAutoStart();
+        Setting.putAutoStart(!current);
+        updateAutoStartStatus();
+        Toast.makeText(this,
+                Setting.getAutoStart() ? "TTV will launch automatically on boot" : "Auto-start disabled",
+                Toast.LENGTH_SHORT).show();
+    }
+
+    private void updateAutoStartStatus() {
+        binding.autoStartText.setText(Setting.getAutoStart() ? "On" : "Off");
     }
 
     // ── Shortcut handlers ─────────────────────────────────────────────────────
@@ -206,6 +264,7 @@ public class SettingsActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         updateDefaultLauncherStatus();
+        updateAutoStartStatus();
     }
 
     @Override

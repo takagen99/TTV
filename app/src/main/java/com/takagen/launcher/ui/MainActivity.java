@@ -199,6 +199,15 @@ public class MainActivity extends AppCompatActivity implements AdapterRow.Listen
     }
 
     @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        // When the system delivers the HOME intent to an already-running singleTask
+        // launcher, onNewIntent fires instead of onCreate. Make sure we're fully visible.
+        Utils.hideSystemUI(this);
+    }
+
+    @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
         if (event.getAction() == KeyEvent.ACTION_DOWN) {
             View focus = getCurrentFocus();

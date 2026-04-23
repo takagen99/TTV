@@ -64,4 +64,14 @@ public class Setting {
         int idx = getMobileRowIndex();
         return MOB_ROW_HEIGHTS[Math.max(0, Math.min(idx, MOB_ROW_HEIGHTS.length - 1))];
     }
+
+    // 6. Auto-start on boot
+    //    0 = Off (default), 1 = On
+    public static boolean getAutoStart() {
+        return Prefers.getInt("autoStart", 0) == 1;
+    }
+
+    public static void putAutoStart(boolean enabled) {
+        Prefers.put("autoStart", enabled ? 1 : 0);
+    }
 }
