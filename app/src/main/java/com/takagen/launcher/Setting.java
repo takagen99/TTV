@@ -60,6 +60,51 @@ public class Setting {
         Prefers.put("autoWall", autoWall);
     }
 
+    // 3a. Wallpaper source — which backend provides the images.
+    //     0 = TMDB (online, requires API key + category mask)
+    //     1 = Local (offline, reads images from a user-picked folder URI)
+    public static final int WALL_SRC_TMDB  = 0;
+    public static final int WALL_SRC_LOCAL = 1;
+
+    public static int getWallSource() {
+        int v = Prefers.getInt("wallSource", WALL_SRC_TMDB);
+        return (v == WALL_SRC_LOCAL) ? WALL_SRC_LOCAL : WALL_SRC_TMDB;
+    }
+
+    public static void putWallSource(int source) {
+        Prefers.put("wallSource",
+                source == WALL_SRC_LOCAL ? WALL_SRC_LOCAL : WALL_SRC_TMDB);
+    }
+
+    // 3b. Local wallpaper folder (opaque SAF tree URI string, empty if not set).
+    public static String getWallLocalFolder() {
+        return Prefers.getString("wallLocalFolder");
+    }
+
+    public static void putWallLocalFolder(String uri) {
+        Prefers.put("wallLocalFolder", uri == null ? "" : uri);
+    }
+
+    // 3c. Auto-cycle interval in seconds (only used while Auto Cycle is On).
+    //     Clamped to a sane range so a stray "0" or huge value doesn't hang or
+    //     spam Glide with reloads.
+    public static final int WALL_CYCLE_MIN_SEC     = 5;
+    public static final int WALL_CYCLE_MAX_SEC     = 3600;
+    public static final int WALL_CYCLE_DEFAULT_SEC = 30;
+
+    public static int getWallCycleSeconds() {
+        int raw = Prefers.getInt("wallCycleSec", WALL_CYCLE_DEFAULT_SEC);
+        if (raw < WALL_CYCLE_MIN_SEC) return WALL_CYCLE_MIN_SEC;
+        if (raw > WALL_CYCLE_MAX_SEC) return WALL_CYCLE_MAX_SEC;
+        return raw;
+    }
+
+    public static void putWallCycleSeconds(int seconds) {
+        if (seconds < WALL_CYCLE_MIN_SEC) seconds = WALL_CYCLE_MIN_SEC;
+        if (seconds > WALL_CYCLE_MAX_SEC) seconds = WALL_CYCLE_MAX_SEC;
+        Prefers.put("wallCycleSec", seconds);
+    }
+
     // 4. TV app row height (index into TV_ROW_HEIGHTS)
     public static int getTvRowIndex() {
         return Prefers.getInt("tvRowIdx", TV_ROW_DEFAULT);

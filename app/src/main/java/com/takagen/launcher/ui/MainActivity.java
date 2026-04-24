@@ -174,18 +174,22 @@ public class MainActivity extends AppCompatActivity implements AdapterRow.Listen
         } else if (v == binding.tvRefresh) {
             loadApps();
         } else if (v == binding.tvClear) {
-            new MaterialAlertDialogBuilder(this, R.style.DarkDialogAlert)
+            // Build, attach OnShowListener, THEN show. Previously .setOnShowListener
+            // was chained AFTER .show(), so the show event had already fired and
+            // the listener never ran — meaning "No" was never focused by default.
+            AlertDialog dialog = new MaterialAlertDialogBuilder(this, R.style.DarkDialogAlert)
                     .setTitle("Reset Custom Sort")
                     .setNegativeButton("No", null)
                     .setPositiveButton("Yes", (d, w) -> {
                         db.favAppDao().deleteAllFavApp();
                         loadApps();
                     })
-                    .show()
-                    .setOnShowListener(d -> {
-                        Button no = ((AlertDialog) d).getButton(DialogInterface.BUTTON_NEGATIVE);
-                        if (no != null) no.requestFocus();
-                    });
+                    .create();
+            dialog.setOnShowListener(d -> {
+                Button no = ((AlertDialog) d).getButton(DialogInterface.BUTTON_NEGATIVE);
+                if (no != null) no.requestFocus();
+            });
+            dialog.show();
         } else if (v == binding.tvMenu) {
             // Show the Google-TV-style quick-settings card; its "All settings"
             // header then forwards to the full Settings page.

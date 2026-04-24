@@ -150,11 +150,97 @@
                 android:layout_marginEnd="50dp"
                 android:orientation="vertical">
 
-                <!-- TMDB API Key -->
+                <!-- ══ Show / Hide Apps (moved to the top) ══ -->
+                <LinearLayout
+                    android:id="@+id/showHideApps"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/selector_setting"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true"
+                    android:orientation="horizontal"
+                    android:paddingStart="12dp"
+                    android:paddingTop="6dp"
+                    android:paddingEnd="12dp"
+                    android:paddingBottom="6dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="16dp"
+                        android:text="Show / Hide Apps"
+                        android:textColor="@color/white"
+                        android:textSize="18sp" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="end"
+                        android:text="Manage"
+                        android:textColor="@color/white_50"
+                        android:textSize="18sp" />
+                </LinearLayout>
+
+                <!-- ══════════════════════════════════════════════════════════
+                     Wallpapers Settings sub-section.
+                     Rows underneath are conditionally visible based on the
+                     selected source (TMDB vs Local) — visibility is toggled
+                     at runtime in SettingsActivity.
+                     ══════════════════════════════════════════════════════════ -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="32dp"
+                    android:layout_marginBottom="12dp"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp"
+                    android:text="WALLPAPERS SETTINGS"
+                    android:textColor="@color/white"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    tools:ignore="RtlSymmetry" />
+
+                <!-- Source (TMDB / Local) — click to toggle -->
+                <LinearLayout
+                    android:id="@+id/wallSource"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:background="@drawable/selector_setting"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true"
+                    android:orientation="horizontal"
+                    android:paddingStart="12dp"
+                    android:paddingTop="6dp"
+                    android:paddingEnd="12dp"
+                    android:paddingBottom="6dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="16dp"
+                        android:text="Source"
+                        android:textColor="@color/white"
+                        android:textSize="18sp" />
+
+                    <TextView
+                        android:id="@+id/wallSourceText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="end"
+                        android:textColor="@color/white"
+                        android:textSize="18sp"
+                        tools:text="TMDB" />
+                </LinearLayout>
+
+                <!-- ▾ TMDB-only rows: TMDB API Key, Wallpaper Type ▾ -->
+
                 <LinearLayout
                     android:id="@+id/tmdbKey"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:layout_marginStart="12dp"
                     android:background="@drawable/selector_setting"
                     android:focusable="true"
                     android:focusableInTouchMode="true"
@@ -186,12 +272,12 @@
                         android:textSize="18sp" />
                 </LinearLayout>
 
-                <!-- Wallpaper Type -->
                 <LinearLayout
                     android:id="@+id/wall"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="14dp"
+                    android:layout_marginStart="12dp"
                     android:background="@drawable/selector_setting"
                     android:focusable="true"
                     android:focusableInTouchMode="true"
@@ -219,12 +305,51 @@
                         tools:text="Trending" />
                 </LinearLayout>
 
-                <!-- Auto Cycle -->
+                <!-- ▾ Local-only row: folder picker ▾ -->
+
+                <LinearLayout
+                    android:id="@+id/wallLocalFolder"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:layout_marginStart="12dp"
+                    android:background="@drawable/selector_setting"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true"
+                    android:orientation="horizontal"
+                    android:paddingStart="12dp"
+                    android:paddingTop="6dp"
+                    android:paddingEnd="12dp"
+                    android:paddingBottom="6dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="16dp"
+                        android:text="Local Folder"
+                        android:textColor="@color/white"
+                        android:textSize="18sp" />
+
+                    <TextView
+                        android:id="@+id/wallLocalFolderText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:ellipsize="middle"
+                        android:gravity="end"
+                        android:singleLine="true"
+                        android:textColor="@color/white"
+                        android:textSize="18sp"
+                        tools:text="/sdcard/Pictures/Backgrounds" />
+                </LinearLayout>
+
+                <!-- ▾ Shared rows: Auto Cycle + Cycle Interval (both sources) ▾ -->
+
                 <LinearLayout
                     android:id="@+id/wallAuto"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="14dp"
+                    android:layout_marginStart="12dp"
                     android:background="@drawable/selector_setting"
                     android:focusable="true"
                     android:focusableInTouchMode="true"
@@ -252,16 +377,12 @@
                         tools:text="On" />
                 </LinearLayout>
 
-                <!-- Note: "Default TV Launcher" and "Auto Start on Boot" were moved
-                     into the Quick Settings overlay (QuickSettingsActivity) per the
-                     Google-TV-style redesign. -->
-
-                <!-- Show / Hide Apps -->
                 <LinearLayout
-                    android:id="@+id/showHideApps"
+                    android:id="@+id/wallCycleInterval"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="14dp"
+                    android:layout_marginStart="12dp"
                     android:background="@drawable/selector_setting"
                     android:focusable="true"
                     android:focusableInTouchMode="true"
@@ -275,21 +396,23 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="16dp"
-                        android:text="Show / Hide Apps"
+                        android:text="Cycle Interval"
                         android:textColor="@color/white"
                         android:textSize="18sp" />
 
                     <TextView
+                        android:id="@+id/wallCycleIntervalText"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:gravity="end"
-                        android:text="Manage"
-                        android:textColor="@color/white_50"
-                        android:textSize="18sp" />
+                        android:textColor="@color/white"
+                        android:textSize="18sp"
+                        tools:text="30 sec" />
                 </LinearLayout>
 
-                <!-- Note: "TV App Row Height" and "Mobile App Row Height" were moved
-                     into the Quick Settings overlay (QuickSettingsActivity). -->
+                <!-- Note: "Default TV Launcher", "Auto Start on Boot", "TV App
+                     Row Height", and "Mobile App Row Height" live in the Quick
+                     Settings overlay (QuickSettingsOverlay), not here. -->
 
             </LinearLayout>
         </ScrollView>

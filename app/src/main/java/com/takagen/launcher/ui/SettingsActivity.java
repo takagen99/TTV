@@ -5,14 +5,18 @@ import android.app.ActivityManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.StatFs;
+import android.text.InputType;
+import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.view.View;
-import android.view.inputmethod.EditorInfo;
 import android.view.WindowManager;
+import android.view.inputmethod.EditorInfo;
+import android.widget.EditText;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -45,6 +49,9 @@ import java.util.Locale;
  */
 public class SettingsActivity extends AppCompatActivity {
 
+    /** Storage Access Framework folder-picker request code. */
+    private static final int REQ_PICK_LOCAL_FOLDER = 0x5A1F;
+
     private ActivitySettingsBinding binding;
 
     private String[] autoWall;
@@ -70,10 +77,18 @@ public class SettingsActivity extends AppCompatActivity {
     private void initView() {
         onOff = ResUtil.getStringArray(R.array.on_off);
         wall = ResUtil.getStringArray(R.array.select_wall);
+        autoWall = onOff;
+
         binding.wallText.setText(formatWallMask(Setting.getWallMask()));
-        binding.wallAutoText.setText((autoWall = onOff)[Setting.getAutoWall()]);
+        binding.wallAutoText.setText(autoWall[Setting.getAutoWall()]);
         binding.tmdbKeyText.setText(Setting.getTMDBKey());
+        binding.wallSourceText.setText(formatWallSource(Setting.getWallSource()));
+        binding.wallLocalFolderText.setText(formatLocalFolder(Setting.getWallLocalFolder()));
+        binding.wallCycleIntervalText.setText(formatCycleSeconds(Setting.getWallCycleSeconds()));
         binding.appVersion.setText("Version " + BuildConfig.VERSION_CODE + " - " + BuildConfig.VERSION_NAME);
+
+        // Source-dependent row visibility (TMDB vs Local branches of Wallpapers Settings).
+        applySourceVisibility(Setting.getWallSource());
 
         // Start on General section, focus first item in right panel
         showSection(false);
@@ -90,15 +105,19 @@ public class SettingsActivity extends AppCompatActivity {
         });
         binding.sectionMain.setOnClickListener(v -> {
             showSection(false);
-            binding.tmdbKey.requestFocus();
+            // Focus the first row in the General panel, which is now "Show / Hide Apps".
+            binding.showHideApps.requestFocus();
         });
         binding.sectionAbout.setOnClickListener(v -> showSection(true));
 
         // General panel
+        binding.showHideApps.setOnClickListener(v -> AppsHideActivity.start(this));
+        binding.wallSource.setOnClickListener(this::toggleWallSource);
         binding.wall.setOnClickListener(this::setWall);
         binding.wallAuto.setOnClickListener(this::setAutoWall);
+        binding.wallCycleInterval.setOnClickListener(this::setCycleInterval);
+        binding.wallLocalFolder.setOnClickListener(v -> pickLocalFolder());
         binding.tmdbKey.setOnClickListener(v -> binding.tmdbKeyText.requestFocus());
-        binding.showHideApps.setOnClickListener(v -> AppsHideActivity.start(this));
 
         binding.tmdbKeyText.setOnEditorActionListener((v, actionId, event) -> {
             if (actionId == EditorInfo.IME_ACTION_DONE) {
@@ -163,6 +182,133 @@ public class SettingsActivity extends AppCompatActivity {
         int index = Setting.getAutoWall();
         Setting.putAutoWall(index = index == autoWall.length - 1 ? 0 : ++index);
         binding.wallAutoText.setText(autoWall[index]);
+    }
+
+    // ── Wallpaper source (TMDB ↔ Local) ───────────────────────────────────────
+
+    /**
+     * Flip the wallpaper source on click. Only two options so we skip the
+     * chooser dialog in favour of a cycling toggle — consistent with the
+     * "Auto Cycle" row's On/Off behaviour.
+     */
+    private void toggleWallSource(View v) {
+        int next = Setting.getWallSource() == Setting.WALL_SRC_TMDB
+                ? Setting.WALL_SRC_LOCAL
+                : Setting.WALL_SRC_TMDB;
+        Setting.putWallSource(next);
+        binding.wallSourceText.setText(formatWallSource(next));
+        applySourceVisibility(next);
+    }
+
+    /** Show only the rows that are relevant for the current source. */
+    private void applySourceVisibility(int source) {
+        boolean tmdb = source == Setting.WALL_SRC_TMDB;
+        binding.tmdbKey.setVisibility(tmdb ? View.VISIBLE : View.GONE);
+        binding.wall.setVisibility(tmdb ? View.VISIBLE : View.GONE);
+        binding.wallLocalFolder.setVisibility(tmdb ? View.GONE : View.VISIBLE);
+    }
+
+    private String formatWallSource(int source) {
+        return source == Setting.WALL_SRC_LOCAL ? "Local" : "TMDB";
+    }
+
+    // ── Local folder picker (Storage Access Framework) ────────────────────────
+
+    /**
+     * Launch the system folder picker. We use ACTION_OPEN_DOCUMENT_TREE so the
+     * user can grant persistable read permission on a directory; the resulting
+     * tree URI is stored and later enumerated by Wallpaper.java.
+     */
+    private void pickLocalFolder() {
+        try {
+            Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION
+                    | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
+            startActivityForResult(intent, REQ_PICK_LOCAL_FOLDER);
+        } catch (Exception e) {
+            new MaterialAlertDialogBuilder(this, R.style.DarkDialogAlert)
+                    .setTitle("Folder picker unavailable")
+                    .setMessage("This device does not expose a Storage Access Framework "
+                            + "folder picker, so local wallpapers can't be configured here.")
+                    .setPositiveButton("OK", null)
+                    .show();
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode != REQ_PICK_LOCAL_FOLDER) return;
+        if (resultCode != RESULT_OK || data == null || data.getData() == null) return;
+
+        Uri tree = data.getData();
+        // Persist read permission across reboots so Wallpaper.java can re-open the
+        // folder on the next launch without re-prompting the user.
+        try {
+            int flags = data.getFlags() & Intent.FLAG_GRANT_READ_URI_PERMISSION;
+            getContentResolver().takePersistableUriPermission(tree, flags);
+        } catch (Exception ignored) { }
+
+        String uriStr = tree.toString();
+        Setting.putWallLocalFolder(uriStr);
+        binding.wallLocalFolderText.setText(formatLocalFolder(uriStr));
+    }
+
+    /**
+     * Turns a SAF tree URI like
+     *   {@code content://com.android.externalstorage.documents/tree/primary%3APictures%2FBackgrounds}
+     * into a friendly path like {@code Pictures/Backgrounds}. Falls back to the
+     * raw URI's last path segment if the standard decoding doesn't apply.
+     */
+    private String formatLocalFolder(String uriStr) {
+        if (TextUtils.isEmpty(uriStr)) return "Not set";
+        try {
+            Uri u = Uri.parse(uriStr);
+            String docId = android.provider.DocumentsContract.getTreeDocumentId(u);
+            // docId looks like "primary:Pictures/Backgrounds" — keep just the path part.
+            if (docId != null) {
+                int colon = docId.indexOf(':');
+                String path = colon >= 0 ? docId.substring(colon + 1) : docId;
+                return path.isEmpty() ? docId : path;
+            }
+        } catch (Exception ignored) { }
+        return uriStr;
+    }
+
+    // ── Cycle interval ────────────────────────────────────────────────────────
+
+    /**
+     * Prompt for a custom auto-cycle interval in seconds. A numeric EditText
+     * inside the dialog keeps the D-pad IME workflow simple, and the saved
+     * value is clamped by Setting.putWallCycleSeconds().
+     */
+    private void setCycleInterval(View v) {
+        final EditText input = new EditText(this);
+        input.setInputType(InputType.TYPE_CLASS_NUMBER);
+        input.setHint(Setting.WALL_CYCLE_MIN_SEC + "–" + Setting.WALL_CYCLE_MAX_SEC + " sec");
+        input.setText(String.valueOf(Setting.getWallCycleSeconds()));
+        input.setSelection(input.getText().length());
+
+        new MaterialAlertDialogBuilder(this, R.style.DarkDialogAlert)
+                .setTitle("Cycle Interval (seconds)")
+                .setView(input)
+                .setPositiveButton("OK", (d, w) -> {
+                    int seconds;
+                    try {
+                        seconds = Integer.parseInt(input.getText().toString().trim());
+                    } catch (NumberFormatException e) {
+                        seconds = Setting.WALL_CYCLE_DEFAULT_SEC;
+                    }
+                    Setting.putWallCycleSeconds(seconds);
+                    binding.wallCycleIntervalText.setText(
+                            formatCycleSeconds(Setting.getWallCycleSeconds()));
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private String formatCycleSeconds(int seconds) {
+        return seconds + " sec";
     }
 
     // ── About panel ───────────────────────────────────────────────────────────
