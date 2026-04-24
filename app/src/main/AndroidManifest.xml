@@ -70,15 +70,6 @@
             android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
             android:screenOrientation="sensorLandscape" />
 
-        <!-- Right-anchored Google-TV-style overlay; translucent so MainActivity
-             stays visible (dimmed) behind it. -->
-        <activity
-            android:name=".ui.QuickSettingsActivity"
-            android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
-            android:excludeFromRecents="true"
-            android:screenOrientation="sensorLandscape"
-            android:theme="@style/QuickSettingsTheme" />
-
         <activity
             android:name=".ui.AppsHideActivity"
             android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"

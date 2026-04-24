@@ -5,6 +5,20 @@
     android:background="@drawable/bg"
     android:keepScreenOn="true">
 
+    <!-- Shared launcher backdrop, blurred on API 31+ and dimmed so the toggle
+         list stays readable (same treatment as SettingsActivity). -->
+    <ImageView
+        android:id="@+id/wallpaperBG"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:contentDescription="@null"
+        android:scaleType="centerCrop" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#B3000000" />
+
     <View
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

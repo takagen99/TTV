@@ -1,10 +1,15 @@
 package com.takagen.launcher.utils;
 
 import android.app.Activity;
+import android.content.Context;
+import android.graphics.RenderEffect;
+import android.graphics.Shader;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.text.TextUtils;
 import android.view.View;
 import android.view.animation.Animation;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -64,6 +69,26 @@ public class Wallpaper {
     @Nullable
     public static String getCurrentUrl() {
         return sCurrentUrl;
+    }
+
+    /**
+     * Paint the currently-displayed launcher backdrop into {@code target}, blurred
+     * on API 31+. Caller is responsible for placing {@code target} behind a dim View
+     * (typically {@code #B3000000}) so text stays legible — the same pattern used by
+     * Settings / Show-Hide / Quick Settings.
+     *
+     * <p>No-ops gracefully if no backdrop has been loaded yet; in that case only
+     * the blur is applied so the underlying activity background still gets softened.
+     */
+    public static void applyBackdrop(@NonNull Context ctx, @NonNull ImageView target) {
+        String url = sCurrentUrl;
+        if (!TextUtils.isEmpty(url)) {
+            Glide.with(ctx).load(url).into(target);
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            target.setRenderEffect(
+                    RenderEffect.createBlurEffect(40f, 40f, Shader.TileMode.CLAMP));
+        }
     }
 
     // ── Per-instance state (bound to one Activity) ──

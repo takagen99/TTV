@@ -17,6 +17,7 @@ import com.takagen.launcher.bean.HiddenApp;
 import com.takagen.launcher.databinding.ActivityAppsHideBinding;
 import com.takagen.launcher.db.FavAppDB;
 import com.takagen.launcher.utils.Utils;
+import com.takagen.launcher.utils.Wallpaper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,6 +42,7 @@ public class AppsHideActivity extends AppCompatActivity implements AdapterAppsHi
         binding = ActivityAppsHideBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
         Utils.hideSystemUI(this);
+        Wallpaper.applyBackdrop(this, binding.wallpaperBG);
 
         adapter = new AdapterAppsHide(items, this);
         binding.appsRecycler.setLayoutManager(new LinearLayoutManager(this));

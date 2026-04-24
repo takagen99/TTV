@@ -1,9 +1,7 @@
 package com.takagen.launcher.service;
 
 import android.accessibilityservice.AccessibilityService;
-import android.content.ComponentName;
 import android.content.Intent;
-import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.view.KeyEvent;
@@ -40,6 +38,29 @@ public class AccessibilityKeyDetector extends AccessibilityService {
     private long lastBringForward = 0;
     private static final long COOLDOWN_MS = 600;
 
+    /**
+     * Timestamp (elapsed-realtime ms) of the last time the user intentionally
+     * launched a non-launcher activity from inside TTV — e.g. tapping the
+     * "System Settings" tile. While this timestamp is "fresh", the accessibility
+     * service must NOT try to drag TTV back to the foreground, because doing so
+     * would immediately close the screen the user just chose to open.
+     *
+     * <p>Call {@link #noteUserDepartedTTV()} before launching any settings /
+     * deep-link intent from the launcher UI.
+     */
+    private static volatile long userDepartedAt = 0;
+    private static final long USER_DEPART_GRACE_MS = 5_000;
+
+    /** Mark the start of an intentional foreground hand-off away from TTV. */
+    public static void noteUserDepartedTTV() {
+        userDepartedAt = System.currentTimeMillis();
+    }
+
+    private static boolean withinUserDepartGrace() {
+        long t = userDepartedAt;
+        return t != 0 && (System.currentTimeMillis() - t) < USER_DEPART_GRACE_MS;
+    }
+
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
         if (event == null) return;
@@ -51,6 +72,10 @@ public class AccessibilityKeyDetector extends AccessibilityService {
 
         // Ignore our own windows
         if (OWN_PACKAGE.equals(packageName)) return;
+
+        // The user just tapped a tile that launches a non-launcher activity
+        // (Settings, Wi-Fi, etc.). Don't fight their intent.
+        if (withinUserDepartGrace()) return;
 
         // Check if the package that just came to foreground is a launcher/home app
         if (isForeignLauncher(packageName)) {
@@ -91,35 +116,52 @@ public class AccessibilityKeyDetector extends AccessibilityService {
     }
 
     /**
+     * Known launcher package prefixes. Kept deliberately narrow — an earlier
+     * revision used {@code pm.queryIntentActivities(HOME)} to "auto-discover"
+     * launchers, but on some Android TV builds non-launcher system components
+     * (e.g. Settings wrapper activities) also declare a {@code CATEGORY_HOME}
+     * filter, which caused this service to slam TTV back to the foreground
+     * whenever the user opened Settings. Only match packages we know are
+     * actually TV launchers.
+     */
+    private static final String[] KNOWN_LAUNCHER_PREFIXES = {
+            "com.google.android.tvlauncher",
+            "com.google.android.leanbacklauncher",
+            "com.android.launcher",
+            "com.android.launcher3",
+    };
+
+    /**
      * Returns true if the given package is a launcher/home app that is NOT TTV.
-     * Rather than maintaining a hardcoded list, we ask the PackageManager whether
-     * the package holds a HOME intent-filter — this catches OEM launchers and
-     * future Google TV launcher package renames automatically.
+     *
+     * <p>The check is two-pronged:
+     * <ol>
+     *   <li>If the system currently resolves {@code ACTION_MAIN + CATEGORY_HOME}
+     *       to this package (i.e. it's the active default HOME) and it's not us,
+     *       treat it as foreign. This catches the case where some other launcher
+     *       has just stolen the HOME role.
+     *   <li>Otherwise, only treat it as a launcher if its package name matches
+     *       a known TV-launcher prefix. We deliberately do NOT use a generic
+     *       {@code queryIntentActivities(HOME)} check here — see comment on
+     *       {@link #KNOWN_LAUNCHER_PREFIXES}.
+     * </ol>
      */
     private boolean isForeignLauncher(String pkg) {
+        if (OWN_PACKAGE.equals(pkg)) return false;
         try {
             Intent homeIntent = new Intent(Intent.ACTION_MAIN);
             homeIntent.addCategory(Intent.CATEGORY_HOME);
             PackageManager pm = getPackageManager();
-            // resolveActivity gives us whoever would handle HOME right now
             android.content.pm.ResolveInfo ri =
                     pm.resolveActivity(homeIntent, PackageManager.MATCH_DEFAULT_ONLY);
-            if (ri != null && pkg.equals(ri.activityInfo.packageName)
-                    && !OWN_PACKAGE.equals(pkg)) {
+            if (ri != null && pkg.equals(ri.activityInfo.packageName)) {
                 return true;
             }
-            // Also check if the package declares HOME at all (it may not be the current
-            // default but still be a launcher trying to surface)
-            Intent query = new Intent(Intent.ACTION_MAIN);
-            query.addCategory(Intent.CATEGORY_HOME);
-            query.setPackage(pkg);
-            return !pm.queryIntentActivities(query, 0).isEmpty();
-        } catch (Exception e) {
-            // Fall back to known package names if PackageManager call fails
-            return pkg.startsWith("com.google.android.tvlauncher")
-                    || pkg.startsWith("com.google.android.leanbacklauncher")
-                    || pkg.startsWith("com.android.launcher");
+        } catch (Exception ignored) { }
+        for (String prefix : KNOWN_LAUNCHER_PREFIXES) {
+            if (pkg.startsWith(prefix)) return true;
         }
+        return false;
     }
 
     private void bringToFront() {

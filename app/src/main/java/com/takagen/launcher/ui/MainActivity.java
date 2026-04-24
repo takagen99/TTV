@@ -26,6 +26,7 @@ import com.takagen.launcher.bean.AppInfo;
 import com.takagen.launcher.bean.AppItem;
 import com.takagen.launcher.databinding.ActivityMainBinding;
 import com.takagen.launcher.db.FavAppDB;
+import com.takagen.launcher.service.AccessibilityKeyDetector;
 import com.takagen.launcher.utils.Clock;
 import com.takagen.launcher.utils.ResUtil;
 import com.takagen.launcher.utils.Utils;
@@ -48,6 +49,7 @@ public class MainActivity extends AppCompatActivity implements AdapterRow.Listen
     private Clock timeClock;
     private Clock dateClock;
     private Wallpaper wallpaper;
+    private QuickSettingsOverlay quickSettings;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,6 +61,7 @@ public class MainActivity extends AppCompatActivity implements AdapterRow.Listen
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(this)) {
             Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
                     Uri.parse("package:" + getPackageName()));
+            AccessibilityKeyDetector.noteUserDepartedTTV();
             startActivityForResult(intent, REQ_OVERLAY);
             return;
         }
@@ -74,7 +77,7 @@ public class MainActivity extends AppCompatActivity implements AdapterRow.Listen
         binding.mainRecycler.setHasFixedSize(false);
         binding.mainRecycler.setItemAnimator(null);
 
-        timeClock = Clock.create(binding.tvTime).format("h:mm a");
+        timeClock = Clock.create(binding.tvTime).format("h:mm");
         dateClock = Clock.create(binding.tvDate).format("dd MMMM\nEEEE");
 
         binding.tvPosterTitle.setOnClickListener(this::onMenu);
@@ -82,6 +85,7 @@ public class MainActivity extends AppCompatActivity implements AdapterRow.Listen
         binding.tvClear.setOnClickListener(this::onMenu);
         binding.tvMenu.setOnClickListener(this::onMenu);
         binding.tvMenu.setOnLongClickListener(v -> {
+            AccessibilityKeyDetector.noteUserDepartedTTV();
             startActivity(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
                     Uri.fromParts("package", getPackageName(), null)));
             return true;
@@ -90,6 +94,13 @@ public class MainActivity extends AppCompatActivity implements AdapterRow.Listen
         wallpaper = new Wallpaper(this, binding.frameBG, binding.mainBG, binding.tvPosterTitle,
                 ResUtil.getAnim(R.anim.enter_anim));
         wallpaper.load();
+
+        // Quick-settings card — hosted inside this activity so we can slide only
+        // the right-side panel in, leaving the launcher visible behind a soft dim.
+        quickSettings = new QuickSettingsOverlay(this, binding.qsOverlay);
+        // Trap D-pad focus inside the card while it's visible so arrow keys
+        // don't leak down into the app rows behind the dim.
+        quickSettings.setBackgroundContainer(binding.mainContent);
         // Initial focus: deferred to focusFirstApp() after apps finish loading.
     }
 
@@ -120,6 +131,8 @@ public class MainActivity extends AppCompatActivity implements AdapterRow.Listen
     /** Focus the first child of the first section row (first TV app, or mobile if no TV). */
     private void focusFirstApp() {
         if (binding == null) return;
+        // Don't steal focus from the quick-settings card when it's visible.
+        if (quickSettings != null && quickSettings.isShowing()) return;
         for (int i = 0; i < adapter.getItemCount(); i++) {
             RecyclerView.ViewHolder vh = binding.mainRecycler.findViewHolderForAdapterPosition(i);
             if (vh != null && vh.itemView instanceof RecyclerView) {
@@ -137,6 +150,10 @@ public class MainActivity extends AppCompatActivity implements AdapterRow.Listen
         try {
             Intent launch = getPackageManager().getLaunchIntentForPackage(item.getPack());
             if (launch != null) {
+                // If the user picked an app that happens to be another launcher,
+                // respect their choice — tell the accessibility Home-guardian to
+                // stand down for a moment.
+                AccessibilityKeyDetector.noteUserDepartedTTV();
                 startActivity(launch);
                 overridePendingTransition(R.anim.zoom_enter, 0);
             }
@@ -170,9 +187,9 @@ public class MainActivity extends AppCompatActivity implements AdapterRow.Listen
                         if (no != null) no.requestFocus();
                     });
         } else if (v == binding.tvMenu) {
-            // Show the Google-TV-style quick-settings overlay first; its
-            // "All settings" header then forwards to the full Settings page.
-            QuickSettingsActivity.start(this);
+            // Show the Google-TV-style quick-settings card; its "All settings"
+            // header then forwards to the full Settings page.
+            quickSettings.show();
         }
     }
 
@@ -202,6 +219,11 @@ public class MainActivity extends AppCompatActivity implements AdapterRow.Listen
 
     @Override
     public void onBackPressed() {
+        // Quick-settings card takes priority — dismiss it first.
+        if (quickSettings != null && quickSettings.isShowing()) {
+            quickSettings.hide();
+            return;
+        }
         if (binding != null) {
             LinearLayoutManager lm = (LinearLayoutManager) binding.mainRecycler.getLayoutManager();
             if (lm != null && lm.findFirstCompletelyVisibleItemPosition() > 0) {
@@ -211,6 +233,12 @@ public class MainActivity extends AppCompatActivity implements AdapterRow.Listen
             }
         }
         // Do NOT call super — the launcher must never exit via the Back button.
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (quickSettings != null) quickSettings.onActivityResult(requestCode);
     }
 
     @Override
@@ -249,6 +277,7 @@ public class MainActivity extends AppCompatActivity implements AdapterRow.Listen
         if (timeClock != null) timeClock.release();
         if (dateClock != null) dateClock.release();
         if (wallpaper != null) wallpaper.onDestroy();
+        if (quickSettings != null) quickSettings.release();
         executor.shutdownNow();
         binding = null;
     }

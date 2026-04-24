@@ -1,19 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    Right-anchored translucent overlay styled after the Google TV quick-settings panel.
-    Press Back to dismiss.
+    Right-anchored quick-settings "card" hosted inside MainActivity. Shown by
+    animating the right-side panel in from the edge while a soft dim fades in
+    over the rest of the launcher; the main page stays put the whole time so
+    the apps remain visible through the dim. Press Back or tap outside the
+    panel to dismiss.
 -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/scrim"
+    android:id="@+id/qsRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#99000000">
+    android:clickable="true"
+    android:focusable="false">
+
+    <!-- Soft dim over the launcher. Light enough that apps in the background
+         remain clearly visible but contrasty enough for the panel text. -->
+    <View
+        android:id="@+id/qsDim"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#80000000" />
 
     <!-- Right-side panel -->
     <LinearLayout
-        android:layout_width="420dp"
+        android:id="@+id/qsPanel"
+        android:layout_width="360dp"
         android:layout_height="match_parent"
         android:layout_gravity="end"
         android:background="@color/grey_90"
@@ -104,7 +117,7 @@
                     android:id="@+id/tileAppSettings"
                     layout="@layout/item_quick_tile"
                     android:layout_width="0dp"
-                    android:layout_height="64dp"
+                    android:layout_height="56dp"
                     android:layout_margin="4dp"
                     android:layout_weight="1" />
 
@@ -112,7 +125,7 @@
                     android:id="@+id/tileWifi"
                     layout="@layout/item_quick_tile"
                     android:layout_width="0dp"
-                    android:layout_height="64dp"
+                    android:layout_height="56dp"
                     android:layout_margin="4dp"
                     android:layout_weight="1" />
             </LinearLayout>
@@ -128,7 +141,7 @@
                     android:id="@+id/tileSystemSettings"
                     layout="@layout/item_quick_tile"
                     android:layout_width="0dp"
-                    android:layout_height="64dp"
+                    android:layout_height="56dp"
                     android:layout_margin="4dp"
                     android:layout_weight="1" />
 
@@ -136,7 +149,7 @@
                     android:id="@+id/tileAccessibility"
                     layout="@layout/item_quick_tile"
                     android:layout_width="0dp"
-                    android:layout_height="64dp"
+                    android:layout_height="56dp"
                     android:layout_margin="4dp"
                     android:layout_weight="1" />
             </LinearLayout>
@@ -152,7 +165,7 @@
                     android:id="@+id/tileHdmi1"
                     layout="@layout/item_quick_tile"
                     android:layout_width="0dp"
-                    android:layout_height="64dp"
+                    android:layout_height="56dp"
                     android:layout_margin="4dp"
                     android:layout_weight="1" />
 
@@ -160,7 +173,7 @@
                     android:id="@+id/tileHdmi2"
                     layout="@layout/item_quick_tile"
                     android:layout_width="0dp"
-                    android:layout_height="64dp"
+                    android:layout_height="56dp"
                     android:layout_margin="4dp"
                     android:layout_weight="1" />
             </LinearLayout>
@@ -176,7 +189,7 @@
                     android:id="@+id/tileHdmi3"
                     layout="@layout/item_quick_tile"
                     android:layout_width="0dp"
-                    android:layout_height="64dp"
+                    android:layout_height="56dp"
                     android:layout_margin="4dp"
                     android:layout_weight="1" />
 
@@ -184,7 +197,7 @@
                     android:id="@+id/tileComposite"
                     layout="@layout/item_quick_tile"
                     android:layout_width="0dp"
-                    android:layout_height="64dp"
+                    android:layout_height="56dp"
                     android:layout_margin="4dp"
                     android:layout_weight="1" />
             </LinearLayout>

@@ -13,6 +13,7 @@
         android:layout_height="wrap_content" />
 
     <LinearLayout
+        android:id="@+id/mainContent"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@drawable/shape_home_bg"
@@ -53,7 +54,7 @@
                 android:textSize="12sp"
                 tools:text="poster title" />
 
-            <!-- Input and Wi-Fi shortcuts moved into QuickSettingsActivity -->
+            <!-- Input and Wi-Fi shortcuts live in the quick-settings card now -->
 
             <ImageView
                 android:id="@+id/tvClear"
@@ -142,5 +143,13 @@
             android:focusableInTouchMode="true" />
 
     </LinearLayout>
+
+    <!-- Google-TV-style quick-settings card. Lives inside MainActivity so we
+         can slide just the panel in from the right while the launcher apps
+         stay visible through a soft dim. Toggled via QuickSettingsOverlay. -->
+    <include
+        android:id="@+id/qsOverlay"
+        layout="@layout/activity_quick_settings"
+        android:visibility="gone" />
 
 </FrameLayout>
