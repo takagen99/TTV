@@ -20,6 +20,20 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.ACTION_MANAGE_OVERLAY_PERMISSION" />
+
+    <!-- Storage access for the built-in wallpaper folder browser. -->
+    <!-- READ_EXTERNAL_STORAGE covers API ≤ 32 ; READ_MEDIA_IMAGES covers API 33+. -->
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
+    <!-- MANAGE_EXTERNAL_STORAGE is the escape hatch for API 30+ when the
+         user wants to pick a folder outside of scoped-storage reach. It's
+         declared here but requested at runtime only on demand. -->
+    <uses-permission
+        android:name="android.permission.MANAGE_EXTERNAL_STORAGE"
+        tools:ignore="ScopedStorage" />
     <uses-permission
         android:name="android.permission.BIND_ACCESSIBILITY_SERVICE"
         tools:ignore="ProtectedPermissions" />
@@ -40,6 +54,7 @@
         android:banner="@drawable/banner"
         android:icon="@drawable/app_icon"
         android:label="@string/app_name"
+        android:requestLegacyExternalStorage="true"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
@@ -74,6 +89,30 @@
             android:name=".ui.AppsHideActivity"
             android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
             android:screenOrientation="sensorLandscape" />
+
+        <!-- Built-in folder browser — used as a fallback when the system SAF
+             picker (DocumentsUI) is missing on slim Android TV ROMs. -->
+        <activity
+            android:name=".ui.FolderBrowserActivity"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
+            android:screenOrientation="sensorLandscape" />
+
+        <!-- General-purpose file browser for navigating and opening media files. -->
+        <activity
+            android:name=".ui.FileBrowserActivity"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
+            android:screenOrientation="sensorLandscape" />
+
+        <!-- FileProvider for sharing File URIs on Android 7+ (needed by FileBrowserActivity). -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/provider_paths" />
+        </provider>
 
         <receiver
             android:name=".receiver.BootReceiver"

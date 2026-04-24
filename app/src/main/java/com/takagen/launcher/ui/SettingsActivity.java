@@ -40,8 +40,9 @@ import java.util.Locale;
 /**
  * Full settings page — reachable via "All settings" in {@link QuickSettingsOverlay}.
  *
- * The left panel has two sections:
- *   - General: TMDB key, wallpaper options, Show/Hide Apps.
+ * The left panel has three sections:
+ *   - General: TMDB key, wallpaper options.
+ *   - System:  Show/Hide Apps, File Browser.
  *   - About:   read-only device / build information.
  *
  * Runtime toggles (Default TV Launcher, Auto Start on Boot, Row Heights) live in
@@ -49,8 +50,8 @@ import java.util.Locale;
  */
 public class SettingsActivity extends AppCompatActivity {
 
-    /** Storage Access Framework folder-picker request code. */
-    private static final int REQ_PICK_LOCAL_FOLDER = 0x5A1F;
+    /** Built-in folder-browser request code. */
+    private static final int REQ_PICK_LOCAL_FOLDER_FALLBACK = 0x5A20;
 
     private ActivitySettingsBinding binding;
 
@@ -91,27 +92,36 @@ public class SettingsActivity extends AppCompatActivity {
         applySourceVisibility(Setting.getWallSource());
 
         // Start on General section, focus first item in right panel
-        showSection(false);
+        showSection(0);
         binding.sectionMain.requestFocus();
     }
 
     private void initEvent() {
         // Left panel section selectors — switch right panel on focus
         binding.sectionMain.setOnFocusChangeListener((v, hasFocus) -> {
-            if (hasFocus) showSection(false);
+            if (hasFocus) showSection(0);
+        });
+        binding.sectionSystem.setOnFocusChangeListener((v, hasFocus) -> {
+            if (hasFocus) showSection(1);
         });
         binding.sectionAbout.setOnFocusChangeListener((v, hasFocus) -> {
-            if (hasFocus) showSection(true);
+            if (hasFocus) showSection(2);
         });
         binding.sectionMain.setOnClickListener(v -> {
-            showSection(false);
-            // Focus the first row in the General panel, which is now "Show / Hide Apps".
+            showSection(0);
+            binding.wallSource.requestFocus();
+        });
+        binding.sectionSystem.setOnClickListener(v -> {
+            showSection(1);
             binding.showHideApps.requestFocus();
         });
-        binding.sectionAbout.setOnClickListener(v -> showSection(true));
+        binding.sectionAbout.setOnClickListener(v -> showSection(2));
+
+        // System panel
+        binding.showHideApps.setOnClickListener(v -> AppsHideActivity.start(this));
+        binding.fileBrowser.setOnClickListener(v -> FileBrowserActivity.start(this));
 
         // General panel
-        binding.showHideApps.setOnClickListener(v -> AppsHideActivity.start(this));
         binding.wallSource.setOnClickListener(this::toggleWallSource);
         binding.wall.setOnClickListener(this::setWall);
         binding.wallAuto.setOnClickListener(this::setAutoWall);
@@ -130,9 +140,11 @@ public class SettingsActivity extends AppCompatActivity {
 
     // ── Section switching ──────────────────────────────────────────────────────
 
-    private void showSection(boolean about) {
-        binding.panelMain.setVisibility(about ? View.GONE : View.VISIBLE);
-        binding.panelAbout.setVisibility(about ? View.VISIBLE : View.GONE);
+    /** @param section 0 = General, 1 = System, 2 = About */
+    private void showSection(int section) {
+        binding.panelMain.setVisibility(section == 0 ? View.VISIBLE : View.GONE);
+        binding.panelSystem.setVisibility(section == 1 ? View.VISIBLE : View.GONE);
+        binding.panelAbout.setVisibility(section == 2 ? View.VISIBLE : View.GONE);
     }
 
     // ── General settings handlers ──────────────────────────────────────────────
@@ -215,63 +227,82 @@ public class SettingsActivity extends AppCompatActivity {
     // ── Local folder picker (Storage Access Framework) ────────────────────────
 
     /**
-     * Launch the system folder picker. We use ACTION_OPEN_DOCUMENT_TREE so the
-     * user can grant persistable read permission on a directory; the resulting
-     * tree URI is stored and later enumerated by Wallpaper.java.
+     * Launch the folder picker.
+     *
+     * <p>We always use the built-in {@link FolderBrowserActivity} rather than
+     * {@code ACTION_OPEN_DOCUMENT_TREE}, because Android TV ROMs are wildly
+     * inconsistent here:
+     * <ul>
+     *   <li>Many slim TV builds ship without DocumentsUI entirely — the SAF
+     *       intent errors out with "You don't have an app that can do this".
+     *   <li>Worse, some TVs return a non-null resolver (a system stub) from
+     *       {@code resolveActivity}, then show the same system error only
+     *       after {@code startActivity} — so we can't reliably detect failure
+     *       up-front via a try/catch either.
+     * </ul>
+     * The built-in browser is always available and uses plain
+     * {@link java.io.File} access, which works on every Android version we
+     * support. Users with SAF who previously picked a {@code content://} tree
+     * URI still get their wallpapers enumerated (see {@code Wallpaper.loadLocal()})
+     * for backward-compat with earlier versions of this app.
      */
     private void pickLocalFolder() {
-        try {
-            Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
-            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION
-                    | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
-            startActivityForResult(intent, REQ_PICK_LOCAL_FOLDER);
-        } catch (Exception e) {
-            new MaterialAlertDialogBuilder(this, R.style.DarkDialogAlert)
-                    .setTitle("Folder picker unavailable")
-                    .setMessage("This device does not expose a Storage Access Framework "
-                            + "folder picker, so local wallpapers can't be configured here.")
-                    .setPositiveButton("OK", null)
-                    .show();
-        }
+        FolderBrowserActivity.start(this, REQ_PICK_LOCAL_FOLDER_FALLBACK);
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode != REQ_PICK_LOCAL_FOLDER) return;
-        if (resultCode != RESULT_OK || data == null || data.getData() == null) return;
+        if (requestCode != REQ_PICK_LOCAL_FOLDER_FALLBACK) return;
+        if (resultCode != RESULT_OK || data == null) return;
 
-        Uri tree = data.getData();
-        // Persist read permission across reboots so Wallpaper.java can re-open the
-        // folder on the next launch without re-prompting the user.
-        try {
-            int flags = data.getFlags() & Intent.FLAG_GRANT_READ_URI_PERMISSION;
-            getContentResolver().takePersistableUriPermission(tree, flags);
-        } catch (Exception ignored) { }
-
-        String uriStr = tree.toString();
-        Setting.putWallLocalFolder(uriStr);
-        binding.wallLocalFolderText.setText(formatLocalFolder(uriStr));
+        String path = data.getStringExtra(FolderBrowserActivity.RESULT_DATA_PATH);
+        if (TextUtils.isEmpty(path)) return;
+        // Plain absolute path. Wallpaper.java distinguishes this from any
+        // legacy-stored content:// SAF URI by the leading slash.
+        Setting.putWallLocalFolder(path);
+        binding.wallLocalFolderText.setText(formatLocalFolder(path));
     }
 
     /**
-     * Turns a SAF tree URI like
-     *   {@code content://com.android.externalstorage.documents/tree/primary%3APictures%2FBackgrounds}
-     * into a friendly path like {@code Pictures/Backgrounds}. Falls back to the
-     * raw URI's last path segment if the standard decoding doesn't apply.
+     * Formats the stored wallpaper-folder reference for display. Two possible
+     * shapes are supported:
+     * <ul>
+     *   <li>SAF tree URI like
+     *       {@code content://com.android.externalstorage.documents/tree/primary%3APictures%2FBackgrounds}
+     *       → shown as {@code Pictures/Backgrounds}.
+     *   <li>Plain absolute path from the built-in browser
+     *       like {@code /storage/emulated/0/Pictures/Backgrounds} → shown as
+     *       {@code Pictures/Backgrounds} (strips the common storage-root prefix).
+     * </ul>
      */
     private String formatLocalFolder(String uriStr) {
         if (TextUtils.isEmpty(uriStr)) return "Not set";
-        try {
-            Uri u = Uri.parse(uriStr);
-            String docId = android.provider.DocumentsContract.getTreeDocumentId(u);
-            // docId looks like "primary:Pictures/Backgrounds" — keep just the path part.
-            if (docId != null) {
-                int colon = docId.indexOf(':');
-                String path = colon >= 0 ? docId.substring(colon + 1) : docId;
-                return path.isEmpty() ? docId : path;
+        // SAF content URI?
+        if (uriStr.startsWith("content://")) {
+            try {
+                Uri u = Uri.parse(uriStr);
+                String docId = android.provider.DocumentsContract.getTreeDocumentId(u);
+                if (docId != null) {
+                    int colon = docId.indexOf(':');
+                    String path = colon >= 0 ? docId.substring(colon + 1) : docId;
+                    return path.isEmpty() ? docId : path;
+                }
+            } catch (Exception ignored) { }
+            return uriStr;
+        }
+        // Plain filesystem path — strip the usual storage root prefix for readability.
+        final String[] stripPrefixes = {
+                "/storage/emulated/0/",
+                "/sdcard/",
+                "/storage/self/primary/",
+        };
+        for (String p : stripPrefixes) {
+            if (uriStr.startsWith(p)) {
+                String stripped = uriStr.substring(p.length());
+                return stripped.isEmpty() ? "Internal storage" : stripped;
             }
-        } catch (Exception ignored) { }
+        }
         return uriStr;
     }
 

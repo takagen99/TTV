@@ -1,6 +1,7 @@
 package com.takagen.launcher.utils;
 
 import android.app.Activity;
+import android.content.ContentUris;
 import android.content.Context;
 import android.database.Cursor;
 import android.graphics.RenderEffect;
@@ -9,11 +10,13 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.DocumentsContract;
+import android.provider.MediaStore;
 import android.text.TextUtils;
 import android.view.View;
 import android.view.animation.Animation;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -30,6 +33,7 @@ import com.takagen.launcher.R;
 import com.takagen.launcher.Setting;
 
 import java.io.BufferedInputStream;
+import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -93,13 +97,51 @@ public class Wallpaper {
     public static void applyBackdrop(@NonNull Context ctx, @NonNull ImageView target) {
         String url = sCurrentUrl;
         if (!TextUtils.isEmpty(url)) {
-            // Glide handles both http(s):// and content:// URIs transparently.
-            Glide.with(ctx).load(url).into(target);
+            loadInto(Glide.with(ctx), url, target);
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             target.setRenderEffect(
-                    RenderEffect.createBlurEffect(40f, 40f, Shader.TileMode.CLAMP));
+                    RenderEffect.createBlurEffect(30f, 30f, Shader.TileMode.CLAMP));
         }
+    }
+
+    /**
+     * Centralised Glide load dispatcher. We accept three flavours of
+     * {@code loadable} strings from the rest of the code:
+     * <ul>
+     *   <li><b>http:// / https://</b> — TMDB URLs, loaded as-is.
+     *   <li><b>content://</b> — SAF tree child URIs, loaded as-is.
+     *   <li><b>Absolute filesystem path</b> ({@code /storage/emulated/0/…}) from
+     *       the built-in folder browser. Passed to Glide as a {@link File}
+     *       object rather than a {@code file://} URI, because on some Android
+     *       TV builds the {@code file://} scheme is blocked under scoped storage
+     *       while direct {@link File} access still works via the app's granted
+     *       storage-read permissions.
+     * </ul>
+     */
+    private static void loadInto(com.bumptech.glide.RequestManager glide,
+                                 @NonNull String loadable,
+                                 @NonNull ImageView target) {
+        if (isLocalPath(loadable)) {
+            glide.load(new File(loadable)).into(target);
+        } else {
+            glide.load(loadable).into(target);
+        }
+    }
+
+    private static <T> com.bumptech.glide.RequestBuilder<T> buildLoad(
+            @NonNull com.bumptech.glide.RequestManager glide,
+            @NonNull Class<T> clazz,
+            @NonNull String loadable) {
+        com.bumptech.glide.RequestBuilder<T> b = glide.as(clazz);
+        return isLocalPath(loadable)
+                ? b.load(new File(loadable))
+                : b.load(loadable);
+    }
+
+    /** True if {@code loadable} is a plain absolute filesystem path. */
+    private static boolean isLocalPath(@NonNull String loadable) {
+        return loadable.startsWith("/");
     }
 
     // ── Per-instance state (bound to one Activity) ──
@@ -193,18 +235,21 @@ public class Wallpaper {
         }
         sCurrentUrl = pick.loadable;
 
-        Glide.with(activity).load(sCurrentUrl).into(new CustomTarget<Drawable>() {
-            @Override public void onResourceReady(@NonNull Drawable res,
-                                                  @Nullable Transition<? super Drawable> t) {
-                if (frame != null) {
-                    frame.setBackgroundColor(activity.getResources().getColor(R.color.grey_900));
-                }
-                background.setBackground(res);
-                if (enterAnim != null) background.startAnimation(enterAnim);
-                if (title != null) title.setText(pick.name);
-            }
-            @Override public void onLoadCleared(@Nullable Drawable placeholder) { }
-        });
+        // Dispatch via buildLoad so absolute filesystem paths go through Glide's
+        // File-based decoder rather than the file:// URI pipeline (see loadInto()).
+        buildLoad(Glide.with(activity), Drawable.class, pick.loadable)
+                .into(new CustomTarget<Drawable>() {
+                    @Override public void onResourceReady(@NonNull Drawable res,
+                                                          @Nullable Transition<? super Drawable> t) {
+                        if (frame != null) {
+                            frame.setBackgroundColor(activity.getResources().getColor(R.color.grey_900));
+                        }
+                        background.setBackground(res);
+                        if (enterAnim != null) background.startAnimation(enterAnim);
+                        if (title != null) title.setText(pick.name);
+                    }
+                    @Override public void onLoadCleared(@Nullable Drawable placeholder) { }
+                });
     }
 
     // ── Cache key ─────────────────────────────────────────────────────────────
@@ -338,15 +383,21 @@ public class Wallpaper {
     // ── Local folder loader ───────────────────────────────────────────────────
 
     /**
-     * Enumerate image files under the SAF tree URI the user picked in Settings.
-     * Uses {@link DocumentsContract} directly (no DocumentFile dependency) to
-     * iterate one level of children and keep everything whose MIME type starts
-     * with "image/". Deeper folder traversal is intentionally skipped — keep
-     * the semantics simple so users know exactly which files will show up.
+     * Enumerate image files under the user's picked folder. Two source shapes
+     * are supported based on how the folder was originally picked in Settings:
+     * <ul>
+     *   <li>SAF content URI ({@code content://…/tree/…}) — iterated via
+     *       {@link DocumentsContract}. Persistable read permission must have
+     *       been taken at pick-time for this to work across launches.
+     *   <li>Plain absolute filesystem path (starts with {@code /}) — iterated
+     *       via {@link java.io.File#listFiles()}. Used by the built-in
+     *       {@link com.takagen.launcher.ui.FolderBrowserActivity} fallback on
+     *       TV ROMs that don't ship DocumentsUI.
+     * </ul>
      */
     private void loadLocal(String key) {
-        final String folderUriStr = Setting.getWallLocalFolder();
-        if (TextUtils.isEmpty(folderUriStr)) {
+        final String folderRef = Setting.getWallLocalFolder();
+        if (TextUtils.isEmpty(folderRef)) {
             ITEMS.clear();
             sCachedKey = key;
             return;
@@ -359,43 +410,202 @@ public class Wallpaper {
 
         final Context appContext = activity.getApplicationContext();
         executor.execute(() -> {
+            String diagnostic = null;
             try {
-                Uri treeUri = Uri.parse(folderUriStr);
-                String treeDocId = DocumentsContract.getTreeDocumentId(treeUri);
-                Uri childrenUri =
-                        DocumentsContract.buildChildDocumentsUriUsingTree(treeUri, treeDocId);
-
-                String[] projection = new String[]{
-                        DocumentsContract.Document.COLUMN_DOCUMENT_ID,
-                        DocumentsContract.Document.COLUMN_DISPLAY_NAME,
-                        DocumentsContract.Document.COLUMN_MIME_TYPE
-                };
-
-                try (Cursor c = appContext.getContentResolver()
-                        .query(childrenUri, projection, null, null, null)) {
-                    if (c != null) {
-                        while (c.moveToNext() && !Thread.currentThread().isInterrupted()) {
-                            String mime = c.getString(2);
-                            if (mime == null || !mime.startsWith("image/")) continue;
-                            String docId = c.getString(0);
-                            String name  = c.getString(1);
-                            Uri childUri =
-                                    DocumentsContract.buildDocumentUriUsingTree(treeUri, docId);
-                            ITEMS.add(new Item(childUri.toString(),
-                                    name == null ? "" : stripExtension(name)));
-                        }
-                    }
+                if (folderRef.startsWith("content://")) {
+                    enumerateSafFolder(appContext, folderRef);
+                } else {
+                    diagnostic = enumerateFilePath(appContext, folderRef);
                 }
-            } catch (Exception ignored) {
+            } catch (Exception e) {
                 // Permission revoked, URI stale, or enumeration failed. ITEMS
                 // stays empty and show() will be a no-op until the user picks
                 // a new folder.
+                diagnostic = "Couldn't read folder (" + e.getClass().getSimpleName() + ")";
             }
 
+            final String diag = ITEMS.isEmpty() ? diagnostic : null;
             App.post(() -> {
-                if (!activity.isFinishing() && !activity.isDestroyed()) show();
+                if (activity.isFinishing() || activity.isDestroyed()) return;
+                show();
+                if (diag != null) {
+                    Toast.makeText(activity, diag, Toast.LENGTH_LONG).show();
+                }
             });
         });
+    }
+
+    /** SAF / DocumentsContract enumeration — works on the tree URI you persisted. */
+    private static void enumerateSafFolder(Context ctx, String treeUriStr) {
+        Uri treeUri = Uri.parse(treeUriStr);
+        String treeDocId = DocumentsContract.getTreeDocumentId(treeUri);
+        Uri childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(treeUri, treeDocId);
+
+        String[] projection = new String[]{
+                DocumentsContract.Document.COLUMN_DOCUMENT_ID,
+                DocumentsContract.Document.COLUMN_DISPLAY_NAME,
+                DocumentsContract.Document.COLUMN_MIME_TYPE
+        };
+
+        try (Cursor c = ctx.getContentResolver()
+                .query(childrenUri, projection, null, null, null)) {
+            if (c == null) return;
+            while (c.moveToNext() && !Thread.currentThread().isInterrupted()) {
+                String mime = c.getString(2);
+                if (mime == null || !mime.startsWith("image/")) continue;
+                String docId = c.getString(0);
+                String name  = c.getString(1);
+                Uri childUri = DocumentsContract.buildDocumentUriUsingTree(treeUri, docId);
+                ITEMS.add(new Item(childUri.toString(),
+                        name == null ? "" : stripExtension(name)));
+            }
+        }
+    }
+
+    /**
+     * Enumerate image files in a user-picked folder. Tries two channels in
+     * sequence so we survive Android 11+ scoped-storage restrictions:
+     *
+     * <ol>
+     *   <li><b>Plain filesystem</b> via {@link File#listFiles()}. Fastest on
+     *       pre-Android-11 devices and on devices with All-Files access.
+     *   <li><b>MediaStore</b> via {@link MediaStore.Images.Media}. On Android
+     *       11+ without All-Files access, {@code listFiles()} silently returns
+     *       an <i>empty array</i> (not null, not a SecurityException) for many
+     *       folders — the folder is visible but not enumerable. MediaStore
+     *       indexes images in Pictures/, DCIM/, Download/, and most user-
+     *       sideloaded media, and works under {@code READ_MEDIA_IMAGES} alone,
+     *       so we fall back to it and load via {@code content://} URIs.
+     * </ol>
+     *
+     * <p>Returns {@code null} on success or a user-facing diagnostic message
+     * when the folder truly yields no images through either channel.
+     */
+    @Nullable
+    private static String enumerateFilePath(Context ctx, String absPath) {
+        File dir = new File(absPath);
+        if (!dir.exists()) {
+            return "Wallpaper folder no longer exists:\n" + absPath;
+        }
+        if (!dir.isDirectory()) {
+            return "Wallpaper folder is not a directory:\n" + absPath;
+        }
+
+        // Attempt 1 — plain filesystem.
+        int fsAdded = addFromFilesystem(dir);
+
+        // Attempt 2 — MediaStore (covers the scoped-storage empty-array case).
+        int msAdded = addFromMediaStore(ctx, absPath);
+
+        if (fsAdded + msAdded > 0) return null;
+
+        return "No images found in this folder.\n"
+                + "On Android 11+, TTV can only see images that MediaStore\n"
+                + "has indexed (Pictures/, DCIM/, Download/ — and custom\n"
+                + "folders after a media rescan). To use a folder outside\n"
+                + "those, grant \"All files access\" to TTV in system Settings\n"
+                + "and re-pick the folder.";
+    }
+
+    /** Shallow File-API pass. Returns the number of items added. */
+    private static int addFromFilesystem(File dir) {
+        File[] kids;
+        try {
+            kids = dir.listFiles();
+        } catch (SecurityException ignored) {
+            return 0;
+        }
+        if (kids == null || kids.length == 0) return 0;
+
+        java.util.Arrays.sort(kids, (a, b) -> a.getName().compareToIgnoreCase(b.getName()));
+        int added = 0;
+        for (File f : kids) {
+            if (Thread.currentThread().isInterrupted()) return added;
+            if (!f.isFile() || !isImageFileName(f.getName())) continue;
+            ITEMS.add(new Item(f.getAbsolutePath(), stripExtension(f.getName())));
+            added++;
+        }
+        return added;
+    }
+
+    /**
+     * MediaStore-backed enumeration of images whose on-disk path is a direct
+     * child of {@code absPath}. Results are stored as {@code content://} URIs
+     * which Glide loads via the ContentResolver pipeline — no direct file
+     * access required, so this works under scoped storage where plain
+     * {@link File#listFiles()} returns an empty array.
+     *
+     * <p>Only direct children (not nested sub-folders) are kept to mirror the
+     * filesystem pass's semantics.
+     */
+    private static int addFromMediaStore(Context ctx, String absPath) {
+        String normalized = absPath.endsWith("/") ? absPath : absPath + "/";
+        int added = 0;
+        String[] projection = new String[] {
+                MediaStore.Images.Media._ID,
+                MediaStore.Images.Media.DATA,
+                MediaStore.Images.Media.DISPLAY_NAME,
+        };
+        // DATA is the absolute file path. Still readable (not deprecated for
+        // reads) on API 30+. We filter to direct children of absPath in the
+        // cursor loop to avoid a SQL LIKE-with-escape dance.
+        String selection = MediaStore.Images.Media.DATA + " LIKE ?";
+        String[] selArgs = new String[] { normalized + "%" };
+
+        try (Cursor c = ctx.getContentResolver().query(
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                projection, selection, selArgs,
+                MediaStore.Images.Media.DISPLAY_NAME + " COLLATE NOCASE ASC")) {
+            if (c == null) return 0;
+            while (c.moveToNext()) {
+                if (Thread.currentThread().isInterrupted()) return added;
+                long   id       = c.getLong(0);
+                String filePath = c.getString(1);
+                String name     = c.getString(2);
+
+                // Direct-child check: must start with normalized, and have no
+                // further slashes after the prefix.
+                if (filePath == null || !filePath.startsWith(normalized)) continue;
+                String rest = filePath.substring(normalized.length());
+                if (rest.isEmpty() || rest.contains("/")) continue;
+
+                // Drop if we already got this path from the filesystem pass —
+                // loadable forms would differ (absolute path vs content URI),
+                // so dedup on filePath.
+                if (alreadyHavePath(filePath)) continue;
+
+                Uri uri = ContentUris.withAppendedId(
+                        MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id);
+                ITEMS.add(new Item(uri.toString(),
+                        name == null ? "" : stripExtension(name)));
+                added++;
+            }
+        } catch (Exception ignored) {
+            // Non-fatal — caller will emit a generic diagnostic if nothing got added.
+        }
+        return added;
+    }
+
+    /**
+     * True if {@link #ITEMS} already contains an entry whose loadable either
+     * equals the given filesystem path (filesystem pass) or whose underlying
+     * content URI corresponds to it (theoretical race — kept for safety).
+     */
+    private static boolean alreadyHavePath(@NonNull String filePath) {
+        synchronized (ITEMS) {
+            for (Item i : ITEMS) {
+                if (i.loadable.equals(filePath)) return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean isImageFileName(String name) {
+        String lower = name.toLowerCase(Locale.ROOT);
+        return lower.endsWith(".jpg")  || lower.endsWith(".jpeg")
+            || lower.endsWith(".png")  || lower.endsWith(".webp")
+            || lower.endsWith(".bmp")  || lower.endsWith(".gif")
+            || lower.endsWith(".heic") || lower.endsWith(".heif");
     }
 
     /** Strip "foo.jpg" → "foo" for a friendlier title display. */
