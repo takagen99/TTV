@@ -16,6 +16,7 @@ import com.takagen.launcher.bean.AppHideItem;
 import com.takagen.launcher.bean.HiddenApp;
 import com.takagen.launcher.databinding.ActivityAppsHideBinding;
 import com.takagen.launcher.db.FavAppDB;
+import com.takagen.launcher.utils.LocaleHelper;
 import com.takagen.launcher.utils.Utils;
 import com.takagen.launcher.utils.Wallpaper;
 
@@ -34,6 +35,11 @@ public class AppsHideActivity extends AppCompatActivity implements AdapterAppsHi
 
     public static void start(Activity activity) {
         activity.startActivity(new Intent(activity, AppsHideActivity.class));
+    }
+
+    @Override
+    protected void attachBaseContext(android.content.Context newBase) {
+        super.attachBaseContext(LocaleHelper.wrap(newBase));
     }
 
     @Override

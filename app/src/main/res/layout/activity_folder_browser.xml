@@ -37,7 +37,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Pick a Folder"
+            android:text="@string/folder_browser_title"
             android:textColor="@color/white"
             android:textSize="24sp"
             android:textStyle="bold" />
@@ -73,7 +73,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
             android:gravity="center"
-            android:text="No sub-folders here. Press Select to pick this folder, or Up to go back."
+            android:text="@string/folder_browser_empty"
             android:textColor="@color/white_50"
             android:textSize="14sp"
             android:visibility="gone"
@@ -98,7 +98,7 @@
                 android:paddingTop="10dp"
                 android:paddingEnd="20dp"
                 android:paddingBottom="10dp"
-                android:text="Up"
+                android:text="@string/btn_up"
                 android:textColor="@color/white" />
 
             <Space
@@ -118,7 +118,7 @@
                 android:paddingTop="10dp"
                 android:paddingEnd="20dp"
                 android:paddingBottom="10dp"
-                android:text="Cancel"
+                android:text="@string/btn_cancel"
                 android:textColor="@color/white" />
 
             <Button
@@ -132,7 +132,7 @@
                 android:paddingTop="10dp"
                 android:paddingEnd="20dp"
                 android:paddingBottom="10dp"
-                android:text="Select This Folder"
+                android:text="@string/folder_browser_btn_select"
                 android:textColor="@color/white" />
         </LinearLayout>
     </LinearLayout>

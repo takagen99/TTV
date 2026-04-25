@@ -86,7 +86,8 @@ public class QuickSettingsOverlay {
         });
 
         // Clocks — date format matches MainActivity ("dd MMMM\nEEEE"), time uses 12-hour.
-        dateClock = Clock.create().view(binding.qsDate).format("dd MMMM, EEEE");
+        android.content.Context ctx = binding.getRoot().getContext();
+        dateClock = Clock.create().view(binding.qsDate).format(ctx.getString(R.string.main_date2));
         timeClock = Clock.create().view(binding.qsTime).format("h:mm a");
 
         bindHeader();
@@ -195,33 +196,40 @@ public class QuickSettingsOverlay {
     // ── 8 shortcut tiles ──────────────────────────────────────────────────────
 
     private void bindTiles() {
-        // "App Settings" → Android's apps list (Manage applications). Fall back through
-        // progressively broader targets so we always land somewhere useful.
-        bindTile(binding.tileAppSettings,    R.drawable.ic_home_setting,      "App Settings",
-                v -> launchSettings("App Settings",
+        String appSettings  = host.getString(R.string.qs_tile_app_settings);
+        String wifi         = host.getString(R.string.qs_tile_wifi);
+        String moreSettings = host.getString(R.string.qs_tile_more_settings);
+        String accessibility = host.getString(R.string.qs_tile_accessibility);
+        String hdmi1        = host.getString(R.string.qs_tile_hdmi1);
+        String hdmi2        = host.getString(R.string.qs_tile_hdmi2);
+        String hdmi3        = host.getString(R.string.qs_tile_hdmi3);
+        String composite    = host.getString(R.string.qs_tile_composite);
+
+        bindTile(binding.tileAppSettings,    R.drawable.ic_home_setting,      appSettings,
+                v -> launchSettings(appSettings,
                         new Intent(Settings.ACTION_MANAGE_APPLICATIONS_SETTINGS),
                         new Intent(Settings.ACTION_APPLICATION_SETTINGS),
                         new Intent(Settings.ACTION_SETTINGS)));
 
-        bindTile(binding.tileWifi,           R.drawable.ic_home_network_wifi, "Wi-Fi",
-                v -> launchSettings("Wi-Fi",
+        bindTile(binding.tileWifi,           R.drawable.ic_home_network_wifi, wifi,
+                v -> launchSettings(wifi,
                         new Intent(Settings.ACTION_WIFI_SETTINGS),
                         new Intent(Settings.ACTION_WIRELESS_SETTINGS),
                         new Intent(Settings.ACTION_SETTINGS)));
 
-        bindTile(binding.tileSystemSettings, R.drawable.ic_home_setting,      "More Settings",
-                v -> launchSettings("More Settings",
+        bindTile(binding.tileSystemSettings, R.drawable.ic_home_setting,      moreSettings,
+                v -> launchSettings(moreSettings,
                         new Intent(Settings.ACTION_SETTINGS)));
 
-        bindTile(binding.tileAccessibility,  R.drawable.ic_home_setting,      "Accessibility",
-                v -> launchSettings("Accessibility",
+        bindTile(binding.tileAccessibility,  R.drawable.ic_home_setting,      accessibility,
+                v -> launchSettings(accessibility,
                         new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS),
                         new Intent(Settings.ACTION_SETTINGS)));
 
-        bindTile(binding.tileHdmi1,     R.drawable.input_hdmi,      "HDMI 1",    v -> switchTvInput("HDMI 1"));
-        bindTile(binding.tileHdmi2,     R.drawable.input_hdmi,      "HDMI 2",    v -> switchTvInput("HDMI 2"));
-        bindTile(binding.tileHdmi3,     R.drawable.input_hdmi,      "HDMI 3",    v -> switchTvInput("HDMI 3"));
-        bindTile(binding.tileComposite, R.drawable.input_composite, "Composite", v -> switchTvInput("Composite"));
+        bindTile(binding.tileHdmi1,     R.drawable.input_hdmi,      hdmi1,      v -> switchTvInput(hdmi1));
+        bindTile(binding.tileHdmi2,     R.drawable.input_hdmi,      hdmi2,      v -> switchTvInput(hdmi2));
+        bindTile(binding.tileHdmi3,     R.drawable.input_hdmi,      hdmi3,      v -> switchTvInput(hdmi3));
+        bindTile(binding.tileComposite, R.drawable.input_composite, composite,  v -> switchTvInput(composite));
     }
 
     /** Populate one <include>d tile's icon + label and wire its click. */
@@ -262,7 +270,7 @@ public class QuickSettingsOverlay {
                 }
             }
         }
-        Toast.makeText(host, label + " is not available on this device",
+        Toast.makeText(host, host.getString(R.string.qs_not_available, label),
                 Toast.LENGTH_SHORT).show();
     }
 
@@ -294,7 +302,7 @@ public class QuickSettingsOverlay {
                 }
             }
         } catch (Exception ignored) { }
-        Toast.makeText(host, hint + " input is not available on this device",
+        Toast.makeText(host, host.getString(R.string.qs_input_not_available, hint),
                 Toast.LENGTH_SHORT).show();
     }
 
@@ -310,7 +318,9 @@ public class QuickSettingsOverlay {
             Setting.putAutoStart(!Setting.getAutoStart());
             updateAutoStartStatus();
             Toast.makeText(host,
-                    Setting.getAutoStart() ? "TTV will launch automatically on boot" : "Auto-start disabled",
+                    Setting.getAutoStart()
+                            ? host.getString(R.string.qs_auto_start_on_toast)
+                            : host.getString(R.string.qs_auto_start_off_toast),
                     Toast.LENGTH_SHORT).show();
         });
 
@@ -330,7 +340,8 @@ public class QuickSettingsOverlay {
     }
 
     private void updateAutoStartStatus() {
-        binding.autoStartText.setText(Setting.getAutoStart() ? "On" : "Off");
+        binding.autoStartText.setText(
+                Setting.getAutoStart() ? host.getString(R.string.on) : host.getString(R.string.off));
     }
 
     // ── Default TV Launcher (unchanged behaviour) ─────────────────────────────
@@ -389,7 +400,8 @@ public class QuickSettingsOverlay {
     }
 
     private void updateDefaultLauncherStatus() {
-        binding.defaultLauncherText.setText(
-                isDefaultLauncher() ? "Active — tap to change" : "Set as Default");
+        binding.defaultLauncherText.setText(isDefaultLauncher()
+                ? host.getString(R.string.qs_default_launcher_active)
+                : host.getString(R.string.qs_default_launcher_set));
     }
 }

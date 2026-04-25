@@ -85,7 +85,7 @@
                 <ImageView
                     android:layout_width="30dp"
                     android:layout_height="30dp"
-                    android:contentDescription="All settings"
+                    android:contentDescription="@string/qs_all_settings"
                     android:src="@drawable/ic_home_setting"
                     app:tint="@color/white" />
 
@@ -93,7 +93,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
-                    android:text="All settings"
+                    android:text="@string/qs_all_settings"
                     android:textColor="@color/white"
                     android:textSize="10sp" />
             </LinearLayout>
@@ -233,7 +233,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Auto Start on Boot"
+                        android:text="@string/qs_auto_start_on_boot"
                         android:textColor="@color/white"
                         android:textSize="15sp" />
 
@@ -265,7 +265,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Default TV Launcher"
+                        android:text="@string/qs_default_tv_launcher"
                         android:textColor="@color/white"
                         android:textSize="15sp" />
 
@@ -297,7 +297,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="TV App Row Height"
+                        android:text="@string/qs_tv_app_row_height"
                         android:textColor="@color/white"
                         android:textSize="15sp" />
 
@@ -329,7 +329,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Mobile App Row Height"
+                        android:text="@string/qs_mobile_app_row_height"
                         android:textColor="@color/white"
                         android:textSize="15sp" />
 

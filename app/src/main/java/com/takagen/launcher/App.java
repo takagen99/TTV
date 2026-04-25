@@ -7,6 +7,8 @@ import android.os.Looper;
 
 import androidx.core.os.HandlerCompat;
 
+import com.takagen.launcher.utils.LocaleHelper;
+
 public class App extends Application {
 
     private static App instance;
@@ -23,8 +25,9 @@ public class App extends Application {
 
     @Override
     protected void attachBaseContext(Context base) {
-        super.attachBaseContext(base);
-        Init.set(base);
+        Context wrapped = LocaleHelper.wrap(base);
+        super.attachBaseContext(wrapped);
+        Init.set(wrapped);
     }
 
     public static void post(Runnable runnable) {

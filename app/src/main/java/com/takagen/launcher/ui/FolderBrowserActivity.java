@@ -18,8 +18,10 @@ import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.takagen.launcher.R;
 import com.takagen.launcher.databinding.ActivityFolderBrowserBinding;
 import com.takagen.launcher.databinding.ItemFolderRowBinding;
+import com.takagen.launcher.utils.LocaleHelper;
 import com.takagen.launcher.utils.Utils;
 import com.takagen.launcher.utils.Wallpaper;
 
@@ -61,6 +63,11 @@ public class FolderBrowserActivity extends AppCompatActivity {
     public static void start(Activity activity, int requestCode) {
         activity.startActivityForResult(
                 new Intent(activity, FolderBrowserActivity.class), requestCode);
+    }
+
+    @Override
+    protected void attachBaseContext(android.content.Context newBase) {
+        super.attachBaseContext(LocaleHelper.wrap(newBase));
     }
 
     @Override
@@ -260,7 +267,8 @@ public class FolderBrowserActivity extends AppCompatActivity {
             Entry e = entries.get(position);
             holder.binding.folderName.setText(e.dir.getName());
             String meta = e.imageCount > 0
-                    ? (e.imageCount + " image" + (e.imageCount == 1 ? "" : "s"))
+                    ? holder.binding.getRoot().getContext()
+                            .getString(R.string.folder_meta_images, e.imageCount)
                     : "";
             holder.binding.folderMeta.setText(meta);
 

@@ -142,4 +142,13 @@ public class Setting {
     public static void putAutoStart(boolean enabled) {
         Prefers.put("autoStart", enabled ? 1 : 0);
     }
+
+    // 7. App language locale code ("en" = English, "zh" = Chinese)
+    public static String getLanguage() {
+        return Prefers.getString("language", "en");
+    }
+
+    public static void putLanguage(String langCode) {
+        Prefers.put("language", langCode);
+    }
 }

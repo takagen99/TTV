@@ -42,7 +42,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="24dp"
             android:layout_marginTop="100dp"
-            android:text="Settings"
+            android:text="@string/settings_title"
             android:textColor="@android:color/white"
             android:textSize="24sp"
             android:textStyle="bold" />
@@ -52,7 +52,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="24dp"
             android:layout_marginBottom="20dp"
-            android:text="Select section"
+            android:text="@string/settings_select_section"
             android:textColor="@android:color/white"
             android:textSize="10sp" />
 
@@ -77,7 +77,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="General"
+                android:text="@string/settings_section_general"
                 android:textColor="@color/white"
                 android:textSize="16sp" />
         </LinearLayout>
@@ -105,7 +105,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="System"
+                android:text="@string/settings_section_system"
                 android:textColor="@color/white"
                 android:textSize="16sp" />
         </LinearLayout>
@@ -131,7 +131,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="About"
+                android:text="@string/settings_section_about"
                 android:textColor="@color/white"
                 android:textSize="16sp" />
         </LinearLayout>
@@ -148,7 +148,7 @@
             android:layout_gravity="center"
             android:layout_marginTop="20dp"
             android:layout_marginBottom="20dp"
-            android:text="Version"
+            android:text="@string/settings_version_label"
             android:textColor="@color/white"
             android:textSize="10sp" />
 
@@ -179,12 +179,7 @@
                 android:layout_marginEnd="50dp"
                 android:orientation="vertical">
 
-                <!-- ══════════════════════════════════════════════════════════
-                     Wallpapers Settings sub-section.
-                     Rows underneath are conditionally visible based on the
-                     selected source (TMDB vs Local) — visibility is toggled
-                     at runtime in SettingsActivity.
-                     ══════════════════════════════════════════════════════════ -->
+                <!-- ══ Wallpapers Settings sub-section ══ -->
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -192,7 +187,7 @@
                     android:layout_marginBottom="12dp"
                     android:paddingStart="12dp"
                     android:paddingEnd="12dp"
-                    android:text="WALLPAPERS SETTINGS"
+                    android:text="@string/settings_wallpapers_header"
                     android:textColor="@color/white"
                     android:textSize="13sp"
                     android:textStyle="bold"
@@ -218,7 +213,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="16dp"
-                        android:text="Source"
+                        android:text="@string/settings_source"
                         android:textColor="@color/white"
                         android:textSize="18sp" />
 
@@ -253,7 +248,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="16dp"
-                        android:text="TMDB API Key"
+                        android:text="@string/settings_tmdb_api_key"
                         android:textColor="@color/white"
                         android:textSize="18sp" />
 
@@ -262,7 +257,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:gravity="end"
-                        android:hint="Enter TMDB API Key"
+                        android:hint="@string/settings_tmdb_api_key_hint"
                         android:imeOptions="actionDone"
                         android:importantForAutofill="no"
                         android:inputType="text"
@@ -292,7 +287,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="16dp"
-                        android:text="Wallpaper Type"
+                        android:text="@string/settings_wallpaper_type"
                         android:textColor="@color/white"
                         android:textSize="18sp" />
 
@@ -328,7 +323,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="16dp"
-                        android:text="Local Folder"
+                        android:text="@string/settings_local_folder"
                         android:textColor="@color/white"
                         android:textSize="18sp" />
 
@@ -366,7 +361,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="16dp"
-                        android:text="Auto Cycle"
+                        android:text="@string/settings_auto_cycle"
                         android:textColor="@color/white"
                         android:textSize="18sp" />
 
@@ -400,7 +395,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="16dp"
-                        android:text="Cycle Interval"
+                        android:text="@string/settings_cycle_interval"
                         android:textColor="@color/white"
                         android:textSize="18sp" />
 
@@ -413,10 +408,6 @@
                         android:textSize="18sp"
                         tools:text="30 sec" />
                 </LinearLayout>
-
-                <!-- Note: "Default TV Launcher", "Auto Start on Boot", "TV App
-                     Row Height", and "Mobile App Row Height" live in the Quick
-                     Settings overlay (QuickSettingsOverlay), not here. -->
 
             </LinearLayout>
         </ScrollView>
@@ -458,7 +449,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="16dp"
-                        android:text="Show / Hide Apps"
+                        android:text="@string/settings_show_hide_apps"
                         android:textColor="@color/white"
                         android:textSize="18sp" />
 
@@ -466,7 +457,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:gravity="end"
-                        android:text="Manage"
+                        android:text="@string/settings_manage"
                         android:textColor="@color/white_50"
                         android:textSize="18sp" />
                 </LinearLayout>
@@ -491,7 +482,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="16dp"
-                        android:text="File Browser"
+                        android:text="@string/settings_file_browser"
                         android:textColor="@color/white"
                         android:textSize="18sp" />
 
@@ -499,9 +490,43 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:gravity="end"
-                        android:text="Browse"
+                        android:text="@string/settings_browse"
                         android:textColor="@color/white_50"
                         android:textSize="18sp" />
+                </LinearLayout>
+
+                <!-- Select Language -->
+                <LinearLayout
+                    android:id="@+id/selectLanguage"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:background="@drawable/selector_setting"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true"
+                    android:nextFocusLeft="@id/sectionSystem"
+                    android:orientation="horizontal"
+                    android:paddingStart="12dp"
+                    android:paddingTop="6dp"
+                    android:paddingEnd="12dp"
+                    android:paddingBottom="6dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="16dp"
+                        android:text="@string/settings_language"
+                        android:textColor="@color/white"
+                        android:textSize="18sp" />
+
+                    <TextView
+                        android:id="@+id/languageText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="end"
+                        android:textColor="@color/white"
+                        android:textSize="18sp"
+                        tools:text="English" />
                 </LinearLayout>
 
             </LinearLayout>
@@ -525,94 +550,29 @@
                 android:orientation="vertical"
                 android:paddingBottom="20dp">
 
-                <!-- Each row: label on left, value on right. IDs end in "Val". -->
-                <include
-                    android:id="@+id/aboutAndroidVersion"
-                    layout="@layout/item_about_row" />
-
-                <include
-                    android:id="@+id/aboutBuildNumber"
-                    layout="@layout/item_about_row" />
-
-                <include
-                    android:id="@+id/aboutBuildDate"
-                    layout="@layout/item_about_row" />
-
-                <include
-                    android:id="@+id/aboutSecurityPatch"
-                    layout="@layout/item_about_row" />
-
-                <include
-                    android:id="@+id/aboutKernel"
-                    layout="@layout/item_about_row" />
-
-                <include
-                    android:id="@+id/aboutBrand"
-                    layout="@layout/item_about_row" />
-
-                <include
-                    android:id="@+id/aboutManufacturer"
-                    layout="@layout/item_about_row" />
-
-                <include
-                    android:id="@+id/aboutModel"
-                    layout="@layout/item_about_row" />
-
-                <include
-                    android:id="@+id/aboutDevice"
-                    layout="@layout/item_about_row" />
-
-                <include
-                    android:id="@+id/aboutProduct"
-                    layout="@layout/item_about_row" />
-
-                <include
-                    android:id="@+id/aboutBoard"
-                    layout="@layout/item_about_row" />
-
-                <include
-                    android:id="@+id/aboutHardware"
-                    layout="@layout/item_about_row" />
-
-                <include
-                    android:id="@+id/aboutProcessor"
-                    layout="@layout/item_about_row" />
-
-                <include
-                    android:id="@+id/aboutCpuArch"
-                    layout="@layout/item_about_row" />
-
-                <include
-                    android:id="@+id/aboutAbis"
-                    layout="@layout/item_about_row" />
-
-                <include
-                    android:id="@+id/aboutResolution"
-                    layout="@layout/item_about_row" />
-
-                <include
-                    android:id="@+id/aboutDensity"
-                    layout="@layout/item_about_row" />
-
-                <include
-                    android:id="@+id/aboutRefresh"
-                    layout="@layout/item_about_row" />
-
-                <include
-                    android:id="@+id/aboutRam"
-                    layout="@layout/item_about_row" />
-
-                <include
-                    android:id="@+id/aboutStorage"
-                    layout="@layout/item_about_row" />
-
-                <include
-                    android:id="@+id/aboutBootloader"
-                    layout="@layout/item_about_row" />
-
-                <include
-                    android:id="@+id/aboutAppVersion"
-                    layout="@layout/item_about_row" />
+                <!-- Each row: label on left, value on right. -->
+                <include android:id="@+id/aboutAndroidVersion" layout="@layout/item_about_row" />
+                <include android:id="@+id/aboutBuildNumber"    layout="@layout/item_about_row" />
+                <include android:id="@+id/aboutBuildDate"      layout="@layout/item_about_row" />
+                <include android:id="@+id/aboutSecurityPatch"  layout="@layout/item_about_row" />
+                <include android:id="@+id/aboutKernel"         layout="@layout/item_about_row" />
+                <include android:id="@+id/aboutBrand"          layout="@layout/item_about_row" />
+                <include android:id="@+id/aboutManufacturer"   layout="@layout/item_about_row" />
+                <include android:id="@+id/aboutModel"          layout="@layout/item_about_row" />
+                <include android:id="@+id/aboutDevice"         layout="@layout/item_about_row" />
+                <include android:id="@+id/aboutProduct"        layout="@layout/item_about_row" />
+                <include android:id="@+id/aboutBoard"          layout="@layout/item_about_row" />
+                <include android:id="@+id/aboutHardware"       layout="@layout/item_about_row" />
+                <include android:id="@+id/aboutProcessor"      layout="@layout/item_about_row" />
+                <include android:id="@+id/aboutCpuArch"        layout="@layout/item_about_row" />
+                <include android:id="@+id/aboutAbis"           layout="@layout/item_about_row" />
+                <include android:id="@+id/aboutResolution"     layout="@layout/item_about_row" />
+                <include android:id="@+id/aboutDensity"        layout="@layout/item_about_row" />
+                <include android:id="@+id/aboutRefresh"        layout="@layout/item_about_row" />
+                <include android:id="@+id/aboutRam"            layout="@layout/item_about_row" />
+                <include android:id="@+id/aboutStorage"        layout="@layout/item_about_row" />
+                <include android:id="@+id/aboutBootloader"     layout="@layout/item_about_row" />
+                <include android:id="@+id/aboutAppVersion"     layout="@layout/item_about_row" />
 
             </LinearLayout>
         </ScrollView>

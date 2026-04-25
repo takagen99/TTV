@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">TTV</string>
+    <string name="accessibility_service_summary">保持 TTV 为当前启动器</string>
+    <string name="accessibility_service_description">允许 TTV 启动器拦截 Home 键，使按下 Home 键时始终返回 TTV，而非系统内置的 Google TV 启动器。在 Google TV 设备上需要此权限，因为该平台无法通过常规方式替换默认启动器。</string>
+
+    <string name="main_date1">MM月dd日\nEEEE</string>
+    <string name="main_date2">MM月dd日, EEEE</string>
+
+    <!-- ── Common buttons ── -->
+    <string name="btn_ok">确定</string>
+    <string name="btn_cancel">取消</string>
+    <string name="btn_close">关闭</string>
+    <string name="btn_up">返回上级</string>
+    <string name="on">开</string>
+    <string name="off">关</string>
+
+    <!-- ── Settings screen ── -->
+    <string name="settings_title">设置</string>
+    <string name="settings_select_section">选择分类</string>
+    <string name="settings_section_general">常规</string>
+    <string name="settings_section_system">系统</string>
+    <string name="settings_section_about">关于</string>
+    <string name="settings_version_label">版本</string>
+    <string name="settings_version_format">版本 %1$d - %2$s</string>
+
+    <!-- General panel -->
+    <string name="settings_wallpapers_header">壁纸设置</string>
+    <string name="settings_source">来源</string>
+    <string name="settings_tmdb_api_key">TMDB API 密钥</string>
+    <string name="settings_tmdb_api_key_hint">输入 TMDB API 密钥</string>
+    <string name="settings_wallpaper_type">壁纸类型</string>
+    <string name="settings_local_folder">本地文件夹</string>
+    <string name="settings_auto_cycle">自动切换</string>
+    <string name="settings_cycle_interval">切换间隔</string>
+
+    <!-- General panel — runtime values -->
+    <string name="settings_wall_source_tmdb">TMDB</string>
+    <string name="settings_wall_source_local">本地</string>
+    <string name="settings_local_folder_not_set">未设置</string>
+    <string name="settings_local_folder_internal_storage">内部存储</string>
+    <string name="settings_cycle_seconds_format">%d 秒</string>
+    <string name="settings_wall_categories_title">壁纸分类</string>
+    <string name="settings_cycle_interval_title">切换间隔（秒）</string>
+
+    <!-- System panel -->
+    <string name="settings_show_hide_apps">显示 / 隐藏应用</string>
+    <string name="settings_manage">管理</string>
+    <string name="settings_file_browser">文件浏览器</string>
+    <string name="settings_browse">浏览</string>
+    <string name="settings_language">语言</string>
+    <string name="settings_language_value">中文</string>
+    <string name="settings_language_dialog_title">选择语言</string>
+
+    <!-- About panel labels -->
+    <string name="about_android_version">Android 版本</string>
+    <string name="about_build_number">版本号</string>
+    <string name="about_build_date">编译日期</string>
+    <string name="about_security_patch">安全补丁</string>
+    <string name="about_kernel_version">内核版本</string>
+    <string name="about_brand">品牌</string>
+    <string name="about_manufacturer">制造商</string>
+    <string name="about_model">型号</string>
+    <string name="about_device">设备</string>
+    <string name="about_product">产品</string>
+    <string name="about_board">主板</string>
+    <string name="about_hardware">硬件</string>
+    <string name="about_processor">处理器</string>
+    <string name="about_cpu_architecture">CPU 架构</string>
+    <string name="about_supported_abis">支持的 ABI</string>
+    <string name="about_resolution">分辨率</string>
+    <string name="about_density">像素密度</string>
+    <string name="about_refresh_rate">刷新率</string>
+    <string name="about_ram">运行内存</string>
+    <string name="about_internal_storage">内部存储</string>
+    <string name="about_bootloader">引导程序</string>
+    <string name="about_app_version">应用版本</string>
+
+    <!-- ── Folder browser ── -->
+    <string name="folder_browser_title">选择文件夹</string>
+    <string name="folder_browser_empty">此处没有子文件夹。按"选择此文件夹"选取，或按"返回上级"返回。</string>
+    <string name="folder_browser_btn_select">选择此文件夹</string>
+    <string name="folder_meta_images">%d 张图片</string>
+
+    <!-- ── File browser ── -->
+    <string name="file_browser_title">文件浏览器</string>
+    <string name="file_browser_empty">此处没有媒体文件。按"返回上级"返回。</string>
+    <string name="file_meta_items">%d 个项目</string>
+
+    <!-- ── Apps hide screen ── -->
+    <string name="apps_hide_title">显示 / 隐藏</string>
+    <string name="apps_hide_subtitle">选择要显示的应用</string>
+    <string name="apps_hide_show_all">全部显示</string>
+    <string name="apps_hide_status_visible">显示</string>
+    <string name="apps_hide_status_hidden">隐藏</string>
+
+    <!-- ── Quick settings overlay ── -->
+    <string name="qs_all_settings">所有设置</string>
+    <string name="qs_auto_start_on_boot">开机自启</string>
+    <string name="qs_default_tv_launcher">默认电视启动器</string>
+    <string name="qs_tv_app_row_height">电视应用行高</string>
+    <string name="qs_mobile_app_row_height">手机应用行高</string>
+    <string name="qs_tile_app_settings">应用设置</string>
+    <string name="qs_tile_wifi">无线网络</string>
+    <string name="qs_tile_more_settings">更多设置</string>
+    <string name="qs_tile_accessibility">辅助功能</string>
+    <string name="qs_tile_hdmi1">HDMI 1</string>
+    <string name="qs_tile_hdmi2">HDMI 2</string>
+    <string name="qs_tile_hdmi3">HDMI 3</string>
+    <string name="qs_tile_composite">复合信号</string>
+    <string name="qs_not_available">此设备不支持 %s</string>
+    <string name="qs_input_not_available">此设备没有 %s 输入</string>
+    <string name="qs_auto_start_on_toast">TTV 将在开机时自动启动</string>
+    <string name="qs_auto_start_off_toast">自动启动已关闭</string>
+    <string name="qs_default_launcher_active">已激活 — 点击更改</string>
+    <string name="qs_default_launcher_set">设为默认</string>
+
+    <!-- ── String arrays ── -->
+    <string-array name="on_off">
+        <item>开</item>
+        <item>关</item>
+    </string-array>
+
+    <string-array name="select_wall">
+        <item>热门</item>
+        <item>动漫</item>
+        <item>电影</item>
+        <item>电视剧</item>
+    </string-array>
+
+</resources>

@@ -28,6 +28,7 @@ import com.takagen.launcher.databinding.ActivityMainBinding;
 import com.takagen.launcher.db.FavAppDB;
 import com.takagen.launcher.service.AccessibilityKeyDetector;
 import com.takagen.launcher.utils.Clock;
+import com.takagen.launcher.utils.LocaleHelper;
 import com.takagen.launcher.utils.ResUtil;
 import com.takagen.launcher.utils.Utils;
 import com.takagen.launcher.utils.Wallpaper;
@@ -50,6 +51,11 @@ public class MainActivity extends AppCompatActivity implements AdapterRow.Listen
     private Clock dateClock;
     private Wallpaper wallpaper;
     private QuickSettingsOverlay quickSettings;
+
+    @Override
+    protected void attachBaseContext(android.content.Context newBase) {
+        super.attachBaseContext(LocaleHelper.wrap(newBase));
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,8 +83,9 @@ public class MainActivity extends AppCompatActivity implements AdapterRow.Listen
         binding.mainRecycler.setHasFixedSize(false);
         binding.mainRecycler.setItemAnimator(null);
 
+        android.content.Context ctx = binding.getRoot().getContext();
         timeClock = Clock.create(binding.tvTime).format("h:mm");
-        dateClock = Clock.create(binding.tvDate).format("dd MMMM\nEEEE");
+        dateClock = Clock.create(binding.tvDate).format(ctx.getString(R.string.main_date1));
 
         binding.tvPosterTitle.setOnClickListener(this::onMenu);
         binding.tvRefresh.setOnClickListener(this::onMenu);

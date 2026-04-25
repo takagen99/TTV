@@ -27,6 +27,7 @@ import com.takagen.launcher.R;
 import com.takagen.launcher.Setting;
 import com.takagen.launcher.databinding.ActivitySettingsBinding;
 import com.takagen.launcher.databinding.ItemAboutRowBinding;
+import com.takagen.launcher.utils.LocaleHelper;
 import com.takagen.launcher.utils.ResUtil;
 import com.takagen.launcher.utils.Utils;
 import com.takagen.launcher.utils.Wallpaper;
@@ -64,6 +65,11 @@ public class SettingsActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void attachBaseContext(Context newBase) {
+        super.attachBaseContext(LocaleHelper.wrap(newBase));
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = ActivitySettingsBinding.inflate(getLayoutInflater());
@@ -86,7 +92,9 @@ public class SettingsActivity extends AppCompatActivity {
         binding.wallSourceText.setText(formatWallSource(Setting.getWallSource()));
         binding.wallLocalFolderText.setText(formatLocalFolder(Setting.getWallLocalFolder()));
         binding.wallCycleIntervalText.setText(formatCycleSeconds(Setting.getWallCycleSeconds()));
-        binding.appVersion.setText("Version " + BuildConfig.VERSION_CODE + " - " + BuildConfig.VERSION_NAME);
+        binding.appVersion.setText(getString(R.string.settings_version_format,
+                BuildConfig.VERSION_CODE, BuildConfig.VERSION_NAME));
+        binding.languageText.setText(getString(R.string.settings_language_value));
 
         // Source-dependent row visibility (TMDB vs Local branches of Wallpapers Settings).
         applySourceVisibility(Setting.getWallSource());
@@ -120,6 +128,7 @@ public class SettingsActivity extends AppCompatActivity {
         // System panel
         binding.showHideApps.setOnClickListener(v -> AppsHideActivity.start(this));
         binding.fileBrowser.setOnClickListener(v -> FileBrowserActivity.start(this));
+        binding.selectLanguage.setOnClickListener(v -> showLanguageDialog());
 
         // General panel
         binding.wallSource.setOnClickListener(this::toggleWallSource);
@@ -161,10 +170,10 @@ public class SettingsActivity extends AppCompatActivity {
             checked[i] = (initialMask & (1 << i)) != 0;
         }
         new MaterialAlertDialogBuilder(this, R.style.DarkDialogAlert)
-                .setTitle("Wallpaper Categories")
+                .setTitle(R.string.settings_wall_categories_title)
                 .setMultiChoiceItems(wall, checked,
                         (d, which, isChecked) -> checked[which] = isChecked)
-                .setPositiveButton("OK", (d, w) -> {
+                .setPositiveButton(R.string.btn_ok, (d, w) -> {
                     int newMask = 0;
                     for (int i = 0; i < checked.length; i++) {
                         if (checked[i]) newMask |= (1 << i);
@@ -175,7 +184,7 @@ public class SettingsActivity extends AppCompatActivity {
                     Setting.putWallMask(newMask);
                     binding.wallText.setText(formatWallMask(newMask));
                 })
-                .setNegativeButton("Cancel", null)
+                .setNegativeButton(R.string.btn_cancel, null)
                 .show();
     }
 
@@ -221,7 +230,9 @@ public class SettingsActivity extends AppCompatActivity {
     }
 
     private String formatWallSource(int source) {
-        return source == Setting.WALL_SRC_LOCAL ? "Local" : "TMDB";
+        return source == Setting.WALL_SRC_LOCAL
+                ? getString(R.string.settings_wall_source_local)
+                : getString(R.string.settings_wall_source_tmdb);
     }
 
     // ── Local folder picker (Storage Access Framework) ────────────────────────
@@ -277,7 +288,7 @@ public class SettingsActivity extends AppCompatActivity {
      * </ul>
      */
     private String formatLocalFolder(String uriStr) {
-        if (TextUtils.isEmpty(uriStr)) return "Not set";
+        if (TextUtils.isEmpty(uriStr)) return getString(R.string.settings_local_folder_not_set);
         // SAF content URI?
         if (uriStr.startsWith("content://")) {
             try {
@@ -300,7 +311,9 @@ public class SettingsActivity extends AppCompatActivity {
         for (String p : stripPrefixes) {
             if (uriStr.startsWith(p)) {
                 String stripped = uriStr.substring(p.length());
-                return stripped.isEmpty() ? "Internal storage" : stripped;
+                return stripped.isEmpty()
+                        ? getString(R.string.settings_local_folder_internal_storage)
+                        : stripped;
             }
         }
         return uriStr;
@@ -321,9 +334,9 @@ public class SettingsActivity extends AppCompatActivity {
         input.setSelection(input.getText().length());
 
         new MaterialAlertDialogBuilder(this, R.style.DarkDialogAlert)
-                .setTitle("Cycle Interval (seconds)")
+                .setTitle(R.string.settings_cycle_interval_title)
                 .setView(input)
-                .setPositiveButton("OK", (d, w) -> {
+                .setPositiveButton(R.string.btn_ok, (d, w) -> {
                     int seconds;
                     try {
                         seconds = Integer.parseInt(input.getText().toString().trim());
@@ -334,45 +347,45 @@ public class SettingsActivity extends AppCompatActivity {
                     binding.wallCycleIntervalText.setText(
                             formatCycleSeconds(Setting.getWallCycleSeconds()));
                 })
-                .setNegativeButton("Cancel", null)
+                .setNegativeButton(R.string.btn_cancel, null)
                 .show();
     }
 
     private String formatCycleSeconds(int seconds) {
-        return seconds + " sec";
+        return getString(R.string.settings_cycle_seconds_format, seconds);
     }
 
     // ── About panel ───────────────────────────────────────────────────────────
 
     private void populateAbout() {
-        bindAbout(binding.aboutAndroidVersion,  "Android Version",
+        bindAbout(binding.aboutAndroidVersion,  getString(R.string.about_android_version),
                 Build.VERSION.RELEASE + "  (API " + Build.VERSION.SDK_INT + ")");
-        bindAbout(binding.aboutBuildNumber,     "Build Number",    Build.DISPLAY);
-        bindAbout(binding.aboutBuildDate,       "Build Date",      formatBuildTime(Build.TIME));
-        bindAbout(binding.aboutSecurityPatch,   "Security Patch",  safeSecurityPatch());
-        bindAbout(binding.aboutKernel,          "Kernel Version",  safeProp("os.version"));
+        bindAbout(binding.aboutBuildNumber,     getString(R.string.about_build_number),    Build.DISPLAY);
+        bindAbout(binding.aboutBuildDate,       getString(R.string.about_build_date),      formatBuildTime(Build.TIME));
+        bindAbout(binding.aboutSecurityPatch,   getString(R.string.about_security_patch),  safeSecurityPatch());
+        bindAbout(binding.aboutKernel,          getString(R.string.about_kernel_version),  safeProp("os.version"));
 
-        bindAbout(binding.aboutBrand,           "Brand",           Build.BRAND);
-        bindAbout(binding.aboutManufacturer,    "Manufacturer",    Build.MANUFACTURER);
-        bindAbout(binding.aboutModel,           "Model",           Build.MODEL);
-        bindAbout(binding.aboutDevice,          "Device",          Build.DEVICE);
-        bindAbout(binding.aboutProduct,         "Product",         Build.PRODUCT);
-        bindAbout(binding.aboutBoard,           "Board",           Build.BOARD);
-        bindAbout(binding.aboutHardware,        "Hardware",        Build.HARDWARE);
+        bindAbout(binding.aboutBrand,           getString(R.string.about_brand),           Build.BRAND);
+        bindAbout(binding.aboutManufacturer,    getString(R.string.about_manufacturer),    Build.MANUFACTURER);
+        bindAbout(binding.aboutModel,           getString(R.string.about_model),           Build.MODEL);
+        bindAbout(binding.aboutDevice,          getString(R.string.about_device),          Build.DEVICE);
+        bindAbout(binding.aboutProduct,         getString(R.string.about_product),         Build.PRODUCT);
+        bindAbout(binding.aboutBoard,           getString(R.string.about_board),           Build.BOARD);
+        bindAbout(binding.aboutHardware,        getString(R.string.about_hardware),        Build.HARDWARE);
 
-        bindAbout(binding.aboutProcessor,       "Processor",       readCpuModel());
-        bindAbout(binding.aboutCpuArch,         "CPU Architecture", safeProp("os.arch"));
-        bindAbout(binding.aboutAbis,            "Supported ABIs",  joinAbis());
+        bindAbout(binding.aboutProcessor,       getString(R.string.about_processor),       readCpuModel());
+        bindAbout(binding.aboutCpuArch,         getString(R.string.about_cpu_architecture), safeProp("os.arch"));
+        bindAbout(binding.aboutAbis,            getString(R.string.about_supported_abis),  joinAbis());
 
-        bindAbout(binding.aboutResolution,      "Resolution",      formatResolution());
-        bindAbout(binding.aboutDensity,         "Density",         formatDensity());
-        bindAbout(binding.aboutRefresh,         "Refresh Rate",    formatRefresh());
+        bindAbout(binding.aboutResolution,      getString(R.string.about_resolution),      formatResolution());
+        bindAbout(binding.aboutDensity,         getString(R.string.about_density),         formatDensity());
+        bindAbout(binding.aboutRefresh,         getString(R.string.about_refresh_rate),    formatRefresh());
 
-        bindAbout(binding.aboutRam,             "RAM",             formatRam());
-        bindAbout(binding.aboutStorage,         "Internal Storage", formatStorage());
-        bindAbout(binding.aboutBootloader,      "Bootloader",      Build.BOOTLOADER);
+        bindAbout(binding.aboutRam,             getString(R.string.about_ram),             formatRam());
+        bindAbout(binding.aboutStorage,         getString(R.string.about_internal_storage), formatStorage());
+        bindAbout(binding.aboutBootloader,      getString(R.string.about_bootloader),      Build.BOOTLOADER);
 
-        bindAbout(binding.aboutAppVersion,      "App Version",
+        bindAbout(binding.aboutAppVersion,      getString(R.string.about_app_version),
                 BuildConfig.VERSION_NAME + " (" + BuildConfig.VERSION_CODE + ")");
     }
 
@@ -490,6 +503,26 @@ public class SettingsActivity extends AppCompatActivity {
         while (v >= 1024 && idx < units.length - 1) { v /= 1024; idx++; }
         return String.format(Locale.getDefault(),
                 idx == 0 ? "%.0f %s" : "%.2f %s", v, units[idx]);
+    }
+
+    // ── Language ──────────────────────────────────────────────────────────────
+
+    private void showLanguageDialog() {
+        final String[] langCodes  = {"en", "zh"};
+        final String[] langLabels = {"English", "中文"};
+        int current = "zh".equals(Setting.getLanguage()) ? 1 : 0;
+        new MaterialAlertDialogBuilder(this, R.style.DarkDialogAlert)
+                .setTitle(R.string.settings_language_dialog_title)
+                .setSingleChoiceItems(langLabels, current, (dialog, which) -> {
+                    dialog.dismiss();
+                    if (langCodes[which].equals(Setting.getLanguage())) return;
+                    Setting.putLanguage(langCodes[which]);
+                    Intent restart = new Intent(this, MainActivity.class);
+                    restart.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    startActivity(restart);
+                })
+                .setNegativeButton(R.string.btn_cancel, null)
+                .show();
     }
 
     // ── Lifecycle ─────────────────────────────────────────────────────────────

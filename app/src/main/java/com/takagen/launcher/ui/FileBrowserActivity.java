@@ -20,8 +20,10 @@ import androidx.core.content.FileProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.takagen.launcher.R;
 import com.takagen.launcher.databinding.ActivityFileBrowserBinding;
 import com.takagen.launcher.databinding.ItemFileRowBinding;
+import com.takagen.launcher.utils.LocaleHelper;
 import com.takagen.launcher.utils.Utils;
 import com.takagen.launcher.utils.Wallpaper;
 
@@ -47,6 +49,11 @@ public class FileBrowserActivity extends AppCompatActivity {
 
     public static void start(Activity activity) {
         activity.startActivity(new Intent(activity, FileBrowserActivity.class));
+    }
+
+    @Override
+    protected void attachBaseContext(android.content.Context newBase) {
+        super.attachBaseContext(LocaleHelper.wrap(newBase));
     }
 
     @Override
@@ -268,7 +275,8 @@ public class FileBrowserActivity extends AppCompatActivity {
                     holder.binding.fileTypeLabel.setText("DIR");
                     int count = countChildren(e.file);
                     holder.binding.fileMeta.setText(
-                            count > 0 ? count + " item" + (count == 1 ? "" : "s") : "");
+                            count > 0 ? holder.binding.getRoot().getContext()
+                            .getString(R.string.file_meta_items, count) : "");
                     break;
                 case IMAGE:
                     holder.binding.fileTypeLabel.setText("IMG");

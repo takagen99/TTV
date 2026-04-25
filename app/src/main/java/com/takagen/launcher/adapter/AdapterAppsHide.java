@@ -6,6 +6,7 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.takagen.launcher.R;
 import com.takagen.launcher.bean.AppHideItem;
 import com.takagen.launcher.databinding.ItemAppHideBinding;
 
@@ -73,15 +74,15 @@ public class AdapterAppsHide extends RecyclerView.Adapter<AdapterAppsHide.Holder
         }
 
         void applyVisibility(AppHideItem item) {
+            android.content.Context ctx = binding.getRoot().getContext();
             if (item.hidden) {
-                binding.status.setText("Hidden");
-                binding.status.setTextColor(0xFFAAAAAA);  // dim grey
+                binding.status.setText(ctx.getString(R.string.apps_hide_status_hidden));
+                binding.status.setTextColor(0xFFAAAAAA);
                 binding.icon.setAlpha(0.35f);
                 binding.name.setAlpha(0.5f);
             } else {
-                binding.status.setText("Visible");
-                binding.status.setTextColor(0xFFFFFFFF);  // green
-//                binding.status.setTextColor(0xFF4CAF50);  // green
+                binding.status.setText(ctx.getString(R.string.apps_hide_status_visible));
+                binding.status.setTextColor(0xFFFFFFFF);
                 binding.icon.setAlpha(1.0f);
                 binding.name.setAlpha(1.0f);
             }
