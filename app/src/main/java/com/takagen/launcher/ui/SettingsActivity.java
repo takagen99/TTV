@@ -129,6 +129,7 @@ public class SettingsActivity extends AppCompatActivity {
         binding.showHideApps.setOnClickListener(v -> AppsHideActivity.start(this));
         binding.fileBrowser.setOnClickListener(v -> FileBrowserActivity.start(this));
         binding.selectLanguage.setOnClickListener(v -> showLanguageDialog());
+        binding.backupRestore.setOnClickListener(v -> BackupRestoreActivity.start(this));
 
         // General panel
         binding.wallSource.setOnClickListener(this::toggleWallSource);

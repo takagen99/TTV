@@ -21,11 +21,14 @@
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.ACTION_MANAGE_OVERLAY_PERMISSION" />
 
-    <!-- Storage access for the built-in wallpaper folder browser. -->
-    <!-- READ_EXTERNAL_STORAGE covers API ≤ 32 ; READ_MEDIA_IMAGES covers API 33+. -->
+    <!-- Storage access for the built-in wallpaper folder browser and backup files. -->
+    <!-- READ/WRITE_EXTERNAL_STORAGE covers API ≤ 32 ; READ_MEDIA_* covers API 33+. -->
     <uses-permission
         android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="32" />
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="28" />
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
     <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
     <!-- MANAGE_EXTERNAL_STORAGE is the escape hatch for API 30+ when the
@@ -100,6 +103,12 @@
         <!-- General-purpose file browser for navigating and opening media files. -->
         <activity
             android:name=".ui.FileBrowserActivity"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
+            android:screenOrientation="sensorLandscape" />
+
+        <!-- Settings backup and restore. -->
+        <activity
+            android:name=".ui.BackupRestoreActivity"
             android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
             android:screenOrientation="sensorLandscape" />
 

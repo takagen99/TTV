@@ -52,6 +52,26 @@
     <string name="settings_language">Language</string>
     <string name="settings_language_value">English</string>
     <string name="settings_language_dialog_title">Select Language</string>
+    <string name="settings_backup_restore">Backup &amp; Restore</string>
+    <string name="settings_backup_hint">Manage</string>
+
+    <!-- Backup and Restore screen -->
+    <string name="backup_title">Backup &amp; Restore</string>
+    <string name="backup_subtitle">Create and restore settings backups</string>
+    <string name="backup_btn_create">Backup Now</string>
+    <string name="backup_btn_restore">Restore</string>
+    <string name="backup_btn_delete">Delete</string>
+    <string name="backup_need_storage_permission">Storage access required. Please grant "All files access" for this app.</string>
+    <string name="backup_empty">No backups yet.\nPress Backup Now to create one.</string>
+    <string name="backup_success">Backup saved: %s</string>
+    <string name="backup_fail">Backup failed</string>
+    <string name="backup_restored">Settings restored. Restarting…</string>
+    <string name="backup_restore_fail">Restore failed</string>
+    <string name="backup_confirm_title">Restore Settings?</string>
+    <string name="backup_confirm_msg">This will replace all current settings with the backup from:\n%s\n\nThe app will restart.</string>
+    <string name="backup_confirm_delete_title">Delete Backup?</string>
+    <string name="backup_confirm_delete_msg">Delete the backup from:\n%s?</string>
+    <string name="backup_deleted">Backup deleted</string>
 
     <!-- About panel labels -->
     <string name="about_android_version">Android Version</string>

@@ -52,6 +52,26 @@
     <string name="settings_language">语言</string>
     <string name="settings_language_value">中文</string>
     <string name="settings_language_dialog_title">选择语言</string>
+    <string name="settings_backup_restore">备份与还原</string>
+    <string name="settings_backup_hint">管理</string>
+
+    <!-- Backup and Restore screen -->
+    <string name="backup_title">备份与还原</string>
+    <string name="backup_subtitle">创建和还原设置备份</string>
+    <string name="backup_btn_create">立即备份</string>
+    <string name="backup_btn_restore">还原</string>
+    <string name="backup_btn_delete">删除</string>
+    <string name="backup_need_storage_permission">需要存储权限，请为此应用授予"所有文件访问权限"。</string>
+    <string name="backup_empty">暂无备份。\n按"立即备份"创建。</string>
+    <string name="backup_success">备份已保存：%s</string>
+    <string name="backup_fail">备份失败</string>
+    <string name="backup_restored">设置已还原，正在重启…</string>
+    <string name="backup_restore_fail">还原失败</string>
+    <string name="backup_confirm_title">还原设置？</string>
+    <string name="backup_confirm_msg">将用以下备份替换当前所有设置：\n%s\n\n应用将重新启动。</string>
+    <string name="backup_confirm_delete_title">删除备份？</string>
+    <string name="backup_confirm_delete_msg">删除以下备份：\n%s？</string>
+    <string name="backup_deleted">备份已删除</string>
 
     <!-- About panel labels -->
     <string name="about_android_version">Android 版本</string>
