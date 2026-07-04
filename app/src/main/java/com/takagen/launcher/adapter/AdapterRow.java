@@ -9,6 +9,11 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
 
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
+import android.widget.PopupWindow;
+
+import com.takagen.launcher.R;
 import com.takagen.launcher.bean.AppInfo;
 import com.takagen.launcher.databinding.AdapterBannerBinding;
 import com.takagen.launcher.databinding.AdapterIconBinding;
@@ -20,9 +25,8 @@ public class AdapterRow extends RecyclerView.Adapter<AdapterRow.Holder> {
 
     public interface Listener {
         void onItemClick(AppInfo item);
-
-        /** Called when move-mode exits with a changed order. */
         void onReorder(List<AppInfo> newOrder, boolean isTv);
+        void onUninstall(AppInfo item);
     }
 
     private final List<AppInfo> items;
@@ -69,6 +73,10 @@ public class AdapterRow extends RecyclerView.Adapter<AdapterRow.Holder> {
         return selectedPosition != -1;
     }
 
+    boolean isInMoveMode() {
+        return selectedPosition != -1;
+    }
+
     private void enterMoveMode(View v, int position) {
         movingFrom = position;
         selectedPosition = position;
@@ -79,7 +87,7 @@ public class AdapterRow extends RecyclerView.Adapter<AdapterRow.Holder> {
                 Toast.LENGTH_SHORT).show();
     }
 
-    private void exitMoveMode() {
+    void exitMoveMode() {
         int settled = selectedPosition;
         boolean didMove = moved;
         movingFrom = -1;
@@ -90,6 +98,43 @@ public class AdapterRow extends RecyclerView.Adapter<AdapterRow.Holder> {
         }
         // Rebind the settled holder so bind() resets its visual state cleanly.
         if (settled != -1) notifyItemChanged(settled);
+    }
+
+    private void showLongPressMenu(View anchor, int pos, AppInfo item) {
+        View content = LayoutInflater.from(anchor.getContext())
+                .inflate(R.layout.popup_app_options, null);
+
+        // Measure content so we know its exact dimensions before showing
+        content.measure(
+                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
+        int popupW = content.getMeasuredWidth();
+        int popupH = content.getMeasuredHeight();
+        int gap = Math.round(6 * anchor.getResources().getDisplayMetrics().density);
+
+        PopupWindow popup = new PopupWindow(content, popupW, popupH, true);
+        popup.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        popup.setElevation(16f);
+        popup.setOutsideTouchable(true);
+
+        content.findViewById(R.id.optionMove).setOnClickListener(v -> {
+            popup.dismiss();
+            enterMoveMode(anchor, pos);
+        });
+        content.findViewById(R.id.optionUninstall).setOnClickListener(v -> {
+            popup.dismiss();
+            // Post after dismiss so the popup window is fully gone before
+            // we start a new Activity — avoids window-focus race on some builds.
+            anchor.post(() -> {
+                if (listener != null) listener.onUninstall(item);
+            });
+        });
+
+        // Show to the right of the anchor, top-aligned at the anchor's midpoint
+        int xOff = anchor.getWidth() + gap;
+        int yOff = -anchor.getHeight() / 2;
+        popup.showAsDropDown(anchor, xOff, yOff);
+        content.post(() -> content.findViewById(R.id.optionMove).requestFocus());
     }
 
     class Holder extends RecyclerView.ViewHolder {
@@ -135,7 +180,7 @@ public class AdapterRow extends RecyclerView.Adapter<AdapterRow.Holder> {
                 if (inMoveMode()) {
                     exitMoveMode();
                 } else {
-                    enterMoveMode(v, pos);
+                    showLongPressMenu(v, pos, item);
                 }
                 return true;
             });

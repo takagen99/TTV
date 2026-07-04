@@ -175,11 +175,38 @@ public class MainActivity extends AppCompatActivity implements AdapterRow.Listen
         executor.execute(() -> Utils.saveBucketOrder(snapshot, isTv));
     }
 
+    @Override
+    public void onUninstall(AppInfo item) {
+        AccessibilityKeyDetector.noteUserDepartedTTV();
+        String pkg = item.getPack();
+
+        // Preferred path: the system uninstall confirmation dialog. On phones/tablets
+        // and some TV builds this is handled by the package installer. We MUST verify
+        // an activity actually handles it first — on most Android TV ROMs there is no
+        // PackageInstaller UI, in which case ACTION_DELETE resolves to nothing and
+        // silently does nothing (no exception thrown), so a try/catch wouldn't help.
+        Intent uninstall = new Intent(Intent.ACTION_UNINSTALL_PACKAGE,
+                Uri.parse("package:" + pkg));
+        uninstall.putExtra(Intent.EXTRA_RETURN_RESULT, false);
+        if (uninstall.resolveActivity(getPackageManager()) != null) {
+            startActivity(uninstall);
+            return;
+        }
+
+        // Fallback for Android TV: open the app's info page, which has a working
+        // Uninstall button. This is the same proven intent used by the menu button.
+        try {
+            startActivity(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                    Uri.fromParts("package", pkg, null)));
+        } catch (Exception ignored) { }
+    }
+
     private void onMenu(View v) {
         if (v == binding.tvPosterTitle) {
             wallpaper.show();
         } else if (v == binding.tvRefresh) {
             loadApps();
+            wallpaper.load();
         } else if (v == binding.tvClear) {
             // Build, attach OnShowListener, THEN show. Previously .setOnShowListener
             // was chained AFTER .show(), so the show event had already fired and
@@ -235,6 +262,8 @@ public class MainActivity extends AppCompatActivity implements AdapterRow.Listen
             quickSettings.hide();
             return;
         }
+        // Back during move mode drops the app at its current position (same as Enter).
+        if (adapter != null && adapter.exitAnyMoveMode()) return;
         if (binding != null) {
             LinearLayoutManager lm = (LinearLayoutManager) binding.mainRecycler.getLayoutManager();
             if (lm != null && lm.findFirstCompletelyVisibleItemPosition() > 0) {

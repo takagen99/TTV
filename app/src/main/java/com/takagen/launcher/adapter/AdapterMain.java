@@ -41,6 +41,20 @@ public class AdapterMain extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         notifyDataSetChanged();
     }
 
+    /** Exits move mode on any active row. Returns true if move mode was active. */
+    public boolean exitAnyMoveMode() {
+        boolean exited = false;
+        if (tvAdapter != null && tvAdapter.isInMoveMode()) {
+            tvAdapter.exitMoveMode();
+            exited = true;
+        }
+        if (mobileAdapter != null && mobileAdapter.isInMoveMode()) {
+            mobileAdapter.exitMoveMode();
+            exited = true;
+        }
+        return exited;
+    }
+
     public void submit(List<AppItem> newItems) {
         items.clear();
         items.addAll(newItems);
